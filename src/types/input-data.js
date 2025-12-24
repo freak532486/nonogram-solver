@@ -6,12 +6,12 @@ export class UserInput {
     /**
      * @type {number}
      */
-    #numRows = 0;
+    #numRows;
 
     /**
      * @type {number}
      */
-    #numCols = 0;
+    #numCols;
 
     /**
      * List of row hints. Its length is always equal to 'numRows'.
@@ -37,7 +37,17 @@ export class UserInput {
      */
     #colHintsErr = "";
 
-    
+    /**
+     * Creates the initial user input state.
+     * 
+     * @param {number} numRows 
+     * @param {number} numColums 
+     */
+    constructor(numRows, numColums) {
+        this.#numRows = numRows;
+        this.#numCols = numColums;
+        this.#sanitizeHints();
+    }
 
     /**
      * Makes sure that the invariant '#rowHints.length == numRows' (vice versa for columns) holds. Fills missing hints

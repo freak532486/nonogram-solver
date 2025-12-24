@@ -11,18 +11,9 @@ const onHintChange = () => {
 
 const onBoardResize = () => {
     inputParsing.updateInputState();
+    dynamicUi.resizeHintInputs();
     dynamicUi.rebuildNonogramContainer();
 };
-
-global.inputRowHints.oninput = onHintChange;
-global.inputColHints.oninput = onHintChange;
-
-global.inputNumRows.oninput = onBoardResize;
-global.inputNumCols.oninput = onBoardResize;
-
-global.btnSolve.onclick = doSolve;
-global.btnHint.onclick = doHint;
-global.btnReset.onclick = doReset;
 
 
 /**
@@ -69,3 +60,36 @@ function doReset() {
     global.setSolverInput(NonogramInput.withEmptyBoard(rowHints, colHints));
     dynamicUi.updateNonogramBoardState();
 }
+
+/**
+ * This is called when the page is (re-)loaded. It synchronizes the DOM with the application state and rebuilds the
+ * nonogram UI.
+ * This is necessary because the DOM is not fully deconstructed on a page reload.
+ */
+function onReload() {
+    const state = global.getUserInput();
+
+    /* Write values into DOM */
+    global.inputNumRows.value = String(state.numRows);
+    global.inputNumCols.value = String(state.numCols);
+    global.inputRowHints.value = state.rowHints.map(arr => arr.join(" ")).join("\n");
+    global.inputColHints.value = state.colHints.map(arr => arr.join(" ")).join("\n");
+    global.errlabelRowHints.textContent = state.rowHintsErr;
+    global.errlabelColHints.textContent = state.colHintsErr;
+
+    /* Rebuild nonogram */
+    dynamicUi.rebuildNonogramContainer();
+    dynamicUi.resizeHintInputs();
+}
+
+global.inputRowHints.oninput = onHintChange;
+global.inputColHints.oninput = onHintChange;
+
+global.inputNumRows.oninput = onBoardResize;
+global.inputNumCols.oninput = onBoardResize;
+
+global.btnSolve.onclick = doSolve;
+global.btnHint.onclick = doHint;
+global.btnReset.onclick = doReset;
+
+document.addEventListener("DOMContentLoaded", onReload);

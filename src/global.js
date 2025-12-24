@@ -4,6 +4,9 @@ import { NonogramInput } from "./types/nonogram-types.js";
 /* Constants */
 export const NONOGRAM_CELL_SIZE = "20px";
 
+export const NONOGRAM_INITIAL_WIDTH = 5;
+export const NONOGRAM_INITIAL_HEIGHT = 5;
+
 /* DOM elements */
 export const btnSolve = /** @type {!HTMLElement} */ (document.getElementById("btn-solve"));
 export const btnHint = /** @type {!HTMLElement} */ (document.getElementById("btn-hint"));
@@ -23,7 +26,7 @@ export const nonogramContainer = /** @type {!HTMLElement} */ (document.getElemen
 /**
  * Parsed content of input components.
  */
-let userInput = new UserInput();
+let userInput = new UserInput(NONOGRAM_INITIAL_HEIGHT, NONOGRAM_INITIAL_WIDTH);
 
 /**
  * Returns the current user input state.

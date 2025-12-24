@@ -1,6 +1,9 @@
 import * as global from "./global.js";
 import { CellKnowledge } from "./types/nonogram-types.js";
 
+const HINT_AREA_MIN_LINES = 2;
+const HINT_AREA_MAX_LINES = 15;
+
 /**
  * Given the values in 'input', rebuilds the nonogram container to match the input.
  */
@@ -33,6 +36,7 @@ export function rebuildNonogramContainer() {
     /* Replace content */
     global.nonogramContainer.replaceChildren(...newChildren);
     updateNonogramHintLabels();
+    updateNonogramBoardState();
 }
 
 /**
@@ -169,4 +173,16 @@ function createColHintSpan(col) {
     ret.className = "nonogram-colhint";
 
     return ret;
+}
+
+/**
+ * Resized the hint text areas depending on the size of the board.
+ */
+export function resizeHintInputs() {
+    var numLines = Math.max(global.getUserInput().numRows, global.getUserInput().numCols);
+    numLines = Math.min(HINT_AREA_MAX_LINES, Math.max(HINT_AREA_MIN_LINES, numLines));
+
+    /* 12pt per line seems to work well. */
+    global.inputRowHints.style.height = `${numLines * 12}pt`;
+    global.inputColHints.style.height = `${numLines * 12}pt`;
 }
