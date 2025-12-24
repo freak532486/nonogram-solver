@@ -78,6 +78,7 @@ function onReload() {
     global.errlabelColHints.textContent = state.colHintsErr;
 
     /* Rebuild nonogram */
+    inputParsing.updateInputState();
     dynamicUi.rebuildNonogramContainer();
     dynamicUi.resizeHintInputs();
 }

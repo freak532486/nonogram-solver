@@ -89,8 +89,15 @@ export function updateNonogramBoardState() {
             if (!cell) {
                 continue;
             }
-            
+
+            const knowledge = solverState.state.getCell(col, row);            
             cell.style.backgroundColor = getCellColor(col, row);
+
+            if (knowledge == CellKnowledge.DEFINITELY_WHITE) {
+                cell.replaceChildren(document.createTextNode("X"));
+            } else {
+                cell.replaceChildren();
+            }
         }
     }
 }
