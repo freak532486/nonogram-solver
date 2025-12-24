@@ -1,28 +1,31 @@
 import * as global from "./global.js";
+import { CellKnowledge } from "./types/nonogram-types.js";
 
 /**
  * Given the values in 'input', rebuilds the nonogram container to match the input.
  */
 export function rebuildNonogramContainer() {
+    const userInput = global.getUserInput();
+
     /* Build list of new children */
     let newChildren = [];
 
     /* Prepare layout grid */
-    global.nonogramContainer.style.gridTemplateColumns = `repeat(${global.input.numCols + 1}, auto)`;
-    global.nonogramContainer.style.gridTemplateRows = `repeat(${global.input.numRows + 1}, auto);`;
+    global.nonogramContainer.style.gridTemplateColumns = `repeat(${userInput.numCols + 1}, auto)`;
+    global.nonogramContainer.style.gridTemplateRows = `repeat(${userInput.numRows + 1}, auto);`;
 
     /* Add hint elements */
-    for (let row = 0; row < global.input.numRows; row++) {
+    for (let row = 0; row < userInput.numRows; row++) {
         newChildren.push(createRowHintSpan(row));
     }
 
-    for (let col = 0; col < global.input.numCols; col++) {
+    for (let col = 0; col < userInput.numCols; col++) {
         newChildren.push(createColHintSpan(col));
     }
 
     /* Add cells */
-    for (let col = 0; col < global.input.numCols; col++) {
-        for (let row = 0; row < global.input.numRows; row++) {
+    for (let col = 0; col < userInput.numCols; col++) {
+        for (let row = 0; row < userInput.numRows; row++) {
             newChildren.push(createNonogramCell(col, row));
         }
     }
@@ -36,34 +39,72 @@ export function rebuildNonogramContainer() {
  * Updates the text inside the nonogram hint spans.
  */
 export function updateNonogramHintLabels() {
+    const userInput = global.getUserInput();
+
     /* Rows */
-    for (let row = 0; row < global.input.numRows; row++) {
+    for (let row = 0; row < userInput.numRows; row++) {
         let rowSpan = document.getElementById("rowhint-" + row);
         if (!rowSpan) {
             continue;
         }
 
         rowSpan.innerHTML = "";
-        rowSpan.appendChild(document.createTextNode(global.input.rowHints[row].join(" ")));
+        rowSpan.appendChild(document.createTextNode(userInput.rowHints[row].join(" ")));
     }
 
     /* Columns */
-    for (let col = 0; col < global.input.numCols; col++) {
+    for (let col = 0; col < userInput.numCols; col++) {
         let colSpan = document.getElementById("colhint-" + col);
         if (!colSpan) {
             continue;
         }
 
         colSpan.innerHTML = "";
-        for (const hint of global.input.colHints[col]) {
+        for (const hint of userInput.colHints[col]) {
             colSpan.appendChild(document.createTextNode(String(hint)));
             colSpan.appendChild(document.createElement("br"));
         }
     }
 
     /* Error labels */
-    global.errlabelRowHints.replaceChildren(document.createTextNode(global.input.rowHintsErr));
-    global.errlabelColHints.replaceChildren(document.createTextNode(global.input.colHintsErr));
+    global.errlabelRowHints.replaceChildren(document.createTextNode(userInput.rowHintsErr));
+    global.errlabelColHints.replaceChildren(document.createTextNode(userInput.colHintsErr));
+}
+
+export function updateNonogramBoardState() {
+    /* Nothing to do if there is no solver input yet */
+    if (!global.isSolverInputInitialized()) {
+        return;
+    }
+
+    const solverState = global.getSolverInput();
+
+    for (let row = 0; row < solverState.height; row++) {
+        for (let col = 0; col < solverState.width; col++) {
+            const cell = document.getElementById(`cell-${col}-${row}`);
+            if (!cell) {
+                continue;
+            }
+            
+            cell.style.backgroundColor = getCellColor(col, row);
+        }
+    }
+}
+
+/**
+ * Returns the color that the cell at the given location should have based on the current solver state.
+ * 
+ * @param {number} col 
+ * @param {number} row
+ * @returns {string} 
+ */
+function getCellColor(col, row) {
+    const state = global.getSolverInput().state.getCell(col, row);
+
+    switch (state) {
+        case CellKnowledge.DEFINITELY_BLACK: return "#000000FF";
+        default: return "#00000000";
+    }
 }
 
 /**
@@ -90,7 +131,7 @@ function createNonogramCell(col, row) {
     }
 
     ret.onmouseleave = _ => {
-        ret.style.backgroundColor = "#00000000";
+        ret.style.backgroundColor = getCellColor(col, row);
     }
 
     return ret;

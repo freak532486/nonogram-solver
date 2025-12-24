@@ -1,29 +1,40 @@
 import * as global from "./global.js";
+import { NonogramInput } from "./types/nonogram-types.js";
 
 /**
  * Updates the global state to match the current user inputs.
  */
 export function updateInputState() {
+    updateUserInputState();
+    updateSolverInputState();
+}
+
+/**
+ * Updates the global user input state to match the current content of the web components. 
+ */
+function updateUserInputState() {
+    const userInput = global.getUserInput();
+
     /* Update number of rows and columns */
-    global.input.numRows = Math.max(1, safeParseInt(global.inputNumRows.value));
-    global.input.numCols = Math.max(1, safeParseInt(global.inputNumCols.value));
+    userInput.numRows = Math.max(1, safeParseInt(global.inputNumRows.value));
+    userInput.numCols = Math.max(1, safeParseInt(global.inputNumCols.value));
 
     /* Try to parse hint texts */
     let rowHintsParsed = tryParseHints(global.inputRowHints.value);
-    if (!rowHintsParsed.error && rowHintsParsed.hints.length != global.input.numRows) {
-        rowHintsParsed.error = "Wrong number of lines (" + rowHintsParsed.hints.length + "/" + global.input.numRows + ")";
+    if (!rowHintsParsed.error && rowHintsParsed.hints.length != userInput.numRows) {
+        rowHintsParsed.error = "Wrong number of lines (" + rowHintsParsed.hints.length + "/" + userInput.numRows + ")";
     }
 
-    global.input.rowHints = rowHintsParsed.hints;
-    global.input.rowHintsErr = rowHintsParsed.error;
+    userInput.rowHints = rowHintsParsed.hints;
+    userInput.rowHintsErr = rowHintsParsed.error;
 
     let colHintsParsed = tryParseHints(global.inputColHints.value);
-    if (!colHintsParsed.error && colHintsParsed.hints.length != global.input.numCols) {
-        colHintsParsed.error = "Wrong number of lines (" + colHintsParsed.hints.length + "/" + global.input.numCols + ")";
+    if (!colHintsParsed.error && colHintsParsed.hints.length != userInput.numCols) {
+        colHintsParsed.error = "Wrong number of lines (" + colHintsParsed.hints.length + "/" + userInput.numCols + ")";
     }
 
-    global.input.colHints = colHintsParsed.hints;
-    global.input.colHintsErr = colHintsParsed.error;
+    userInput.colHints = colHintsParsed.hints;
+    userInput.colHintsErr = colHintsParsed.error;
 }
 
 /**
@@ -78,6 +89,32 @@ function tryParseHints(hintsStr) {
     }
 
     return ret;
+}
+
+function updateSolverInputState() {
+    const userInput = global.getUserInput();
+
+    /* Initialize solver input if it hasn't happened yet */
+    if (!global.isSolverInputInitialized()) {
+        global.setSolverInput(NonogramInput.withEmptyBoard(userInput.rowHints, userInput.colHints));
+        return;
+    }
+
+    /* On size change: Recreate entire solver input */
+    const widthChanged = global.getSolverInput().width == userInput.numCols;
+    const heightChanged = global.getSolverInput().height == userInput.numRows;
+
+    if (widthChanged || heightChanged) {
+        global.setSolverInput(NonogramInput.withEmptyBoard(userInput.rowHints, userInput.colHints));
+        return;
+    }
+
+    /* On hint-only change: Simply update hints. */
+    global.setSolverInput(NonogramInput.withExistingState(
+        userInput.rowHints, 
+        userInput.colHints, 
+        global.getSolverInput().state
+    ));
 }
 
 class HintParsingResult {

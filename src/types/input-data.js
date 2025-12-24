@@ -1,7 +1,7 @@
 /**
  * Contains parsed data of all input fields (size, hints...)
  */
-export class InputData {
+export class UserInput {
 
     /**
      * @type {number}

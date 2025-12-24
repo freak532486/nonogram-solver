@@ -1,8 +1,5 @@
 body {
     font-family: sans-serif;
-
-    margin: 0px;
-
     background-color: aliceblue;
 }
 
@@ -14,7 +11,7 @@ body {
     height: 100%;
 
     padding: 20px;
-    border: 1px solid black;
+    border: 2px inset;
 }
 
 .dimensions {
