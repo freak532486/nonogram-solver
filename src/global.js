@@ -3,6 +3,7 @@ import { NonogramInput } from "./types/nonogram-types.js";
 
 /* Constants */
 export const NONOGRAM_CELL_SIZE = "20px";
+export const NONOGRAM_CELL_SIZE_CLICKED = "16px";
 
 export const NONOGRAM_INITIAL_WIDTH = 5;
 export const NONOGRAM_INITIAL_HEIGHT = 5;
@@ -17,6 +18,9 @@ export const inputNumCols = /** @type {!HTMLInputElement} */ (document.getElemen
 
 export const inputRowHints = /** @type {!HTMLTextAreaElement} */ (document.getElementById("input-row-hints"));
 export const inputColHints = /** @type {!HTMLTextAreaElement} */ (document.getElementById("input-col-hints"));
+
+export const inputPrefill = /** @type {HTMLTextAreaElement} */ (document.getElementById("input-prefill"));
+export const btnPrefillApply = /** @type {HTMLTextAreaElement} */ (document.getElementById("button-prefill-apply"));
 
 export const errlabelRowHints = /** @type {!HTMLElement} */ (document.getElementById("errorlabel-row-hints"));
 export const errlabelColHints = /** @type {!HTMLElement} */ (document.getElementById("errorlabel-col-hints"));

@@ -1,5 +1,5 @@
 import * as global from "./global.js";
-import { NonogramInput } from "./types/nonogram-types.js";
+import { CellKnowledge, NonogramInput } from "./types/nonogram-types.js";
 
 /**
  * Updates the global state to match the current user inputs.
@@ -129,4 +129,41 @@ class HintParsingResult {
      * @type {string}
      */
     error = "";
+}
+
+export function applyPrefillToState() {
+    const prefill = global.inputPrefill.value;
+
+    const lines = prefill.split("\n");
+    for (var row = 0; row < lines.length; row++) {
+        var col = 0;
+
+        /* Ignore excess rows */
+        if (row >= global.getSolverInput().height) {
+            break;
+        }
+
+        for (const symbol of lines[row]) {
+            /* Ignore excess columns */
+            if (col >= global.getSolverInput().width) {
+                break;
+            }
+
+            /* Apply symbols with meaning, ignore the rest */
+            if (symbol == '#') {
+                global.getSolverInput().state.updateCell(col, row, CellKnowledge.DEFINITELY_BLACK);
+                col++;
+            }
+
+            if (symbol == '.') {
+                global.getSolverInput().state.updateCell(col, row, CellKnowledge.UNKNOWN);
+                col++;
+            }
+
+            if (symbol == 'X' || symbol == 'x') {
+                global.getSolverInput().state.updateCell(col, row, CellKnowledge.DEFINITELY_WHITE);
+                col++;
+            }
+        }
+    }
 }

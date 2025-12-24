@@ -11,7 +11,7 @@ const onHintChange = () => {
 
 const onBoardResize = () => {
     inputParsing.updateInputState();
-    dynamicUi.resizeHintInputs();
+    dynamicUi.resizeTextAreas();
     dynamicUi.rebuildNonogramContainer();
 };
 
@@ -80,7 +80,7 @@ function onReload() {
     /* Rebuild nonogram */
     inputParsing.updateInputState();
     dynamicUi.rebuildNonogramContainer();
-    dynamicUi.resizeHintInputs();
+    dynamicUi.resizeTextAreas();
 }
 
 global.inputRowHints.oninput = onHintChange;
@@ -88,6 +88,11 @@ global.inputColHints.oninput = onHintChange;
 
 global.inputNumRows.oninput = onBoardResize;
 global.inputNumCols.oninput = onBoardResize;
+
+global.btnPrefillApply.onclick = () => {
+    inputParsing.applyPrefillToState();
+    dynamicUi.updateNonogramBoardState();
+}
 
 global.btnSolve.onclick = doSolve;
 global.btnHint.onclick = doHint;

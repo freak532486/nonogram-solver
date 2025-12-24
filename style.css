@@ -3,6 +3,10 @@ body {
     background-color: aliceblue;
 }
 
+h2 {
+    padding-top: 20px;
+}
+
 .root {
     max-width: 800px;
     margin-left: auto;
@@ -84,12 +88,17 @@ body {
 
 #nonogram-container {
     display: grid;
+    align-items: center;
+    justify-items: center;
 }
 
 .nonogram-cell {
     display: flex;
     justify-content: center;
     align-items: center;
+
+    color: #00000033;
+    user-select: none;
 
     border: 1px solid black;
 }
@@ -111,4 +120,12 @@ body {
 
 .buttons {
     margin-top: 5px;
+}
+
+#input-prefill {
+    display: block;
+    font-family: monospace;
+    width: 100%;
+    margin-bottom: 5px;
+    resize: vertical;
 }

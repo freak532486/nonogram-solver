@@ -29,6 +29,14 @@
                 Hints for the same row/column are separated using spaces.
                 For empty rows/columns, write a zero.
             </p>
+            <h2>Content prefill</h2>
+            <p class="infotext">
+                One line per row. One character per column.
+                '.' (Dot) means unknown. 'X' means "crossed out/definitely white". '#' means "definitely black".
+                Spaces are ignored.
+            </p>
+            <textarea id="input-prefill"></textarea>
+            <input id="button-prefill-apply" value="Apply" type="button" />
             <hr>
             <div class="nonogram">
                 <div id="nonogram-container" class="container">
