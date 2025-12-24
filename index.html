@@ -1,10 +1,53 @@
+<!DOCTYPE html>
 <html>
-    <header>
-        <title>Nonogram Solver</title>
-    </header>
+    <head>
+        <title>My Website</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
 
     <body>
-        <h1>Hello World</h1>
+        <div class="root">
+            <h1>Nonogram Solver</h1>
+            <h2>Dimensions</h2>
+            <div class="dimensions">
+                <span class="label">Width:</span>
+                <input id="input-num-cols" class="input" type="number" min="1" value="1" />
+                <span class="label">Height:</span>
+                <input id="input-num-rows" class="input" type="number" min="1" value="1" />
+            </div>
+            <h2>Hints</h2>
+            <div class="hints">
+                <span class="label">Row Hints:</span>
+                <textarea id="input-row-hints" class="input"></textarea>
+                <span id="errorlabel-row-hints" class="errorlabel"></span>
+                <span class="label">Column Hints:</span>
+                <textarea id="input-col-hints" class="input"></textarea>
+                <span id="errorlabel-col-hints" class="errorlabel"></span>
+            </div>
+            <p class="infotext">
+                One line per row/column.
+                Hints for the same row/column are separated using spaces.
+                For empty rows/columns, write a zero.
+            </p>
+            <hr>
+            <div class="nonogram">
+                <div id="nonogram-container" class="container">
+                    <!-- Filled by javascript -->
+                </div>
+            </div>
+            <br>
+            <div class="buttons">
+                <input id="btn-solve" type="button" value="Solve" />
+                <input id="btn-hint" type="button" value="Hint" />
+            </div>
+        </div>
     </body>
+
+    <!-- Scripts after page load is complete-->
+    <script type="module" src="src/types/input-data.js"></script>
+    <script type="module" src="src/global.js"></script>
+    <script type="module" src="src/input-parsing.js"></script>
+    <script type="module" src="src/nonogram-rebuild.js"></script>
+    <script type="module" src="src/main.js"></script>
 
 </html>

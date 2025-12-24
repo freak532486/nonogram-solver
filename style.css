@@ -1,0 +1,113 @@
+body {
+    font-family: sans-serif;
+
+    margin: 0px;
+
+    background-color: aliceblue;
+}
+
+.root {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+
+    height: 100%;
+
+    padding: 20px;
+    border: 1px solid black;
+}
+
+.dimensions {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px;
+}
+
+.dimensions .label {
+    grid-column: 1;
+    padding-right: 20px;
+}
+
+.dimensions .input {
+    grid-column: 2;
+    max-width: 150px;
+}
+
+.infotext {
+    font-style: italic;
+    font-size: small;
+    color: gray;
+}
+
+.hints {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.hints .label {
+    grid-row: 1;
+}
+
+.hints .input {
+    font-family: monospace;
+    font-size: 10pt;
+    grid-row: 2;
+    resize: none;
+}
+
+.hints .errorlabel {
+    grid-row: 3;
+    color: red;
+}
+
+.nonogram {
+    display: inline-block;
+    border: 2px groove;
+    padding: 5px;
+}
+
+.nonogram .container {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+}
+
+.nonogram .content {
+    grid-column: 2;
+    grid-row: 2;
+
+    display: flex;
+    flex-direction: row;
+
+    border: 1px solid black;
+
+    min-width: 10px;
+}
+
+#nonogram-container {
+    display: grid;
+}
+
+.nonogram-cell {
+    border: 1px solid black;
+}
+
+.nonogram-rowhint, .nonogram-colhint {
+    font-family: monospace;
+    overflow: hidden;
+}
+
+.nonogram-rowhint {
+    margin-right: 5px;
+    align-content: center;
+}
+
+.nonogram-colhint {
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.buttons {
+    margin-top: 5px;
+}
