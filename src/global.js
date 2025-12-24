@@ -7,6 +7,7 @@ export const NONOGRAM_CELL_SIZE = "20px";
 /* DOM elements */
 export const btnSolve = /** @type {!HTMLElement} */ (document.getElementById("btn-solve"));
 export const btnHint = /** @type {!HTMLElement} */ (document.getElementById("btn-hint"));
+export const btnReset = /** @type {!HTMLElement} */ (document.getElementById("btn-reset"));
 
 export const inputNumRows = /** @type {!HTMLInputElement} */ (document.getElementById("input-num-rows"));
 export const inputNumCols = /** @type {!HTMLInputElement} */ (document.getElementById("input-num-cols"));
