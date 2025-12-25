@@ -44,7 +44,8 @@ export class LineId {
      * @returns {string}
      */
     toString() {
-        return `${this.#lineType == LineType.ROW ? "Row" : "Column"} ${this.#index}`;
+        // One-indexed for human readability
+        return `${this.#lineType == LineType.ROW ? "row" : "column"} ${this.#index + 1}`;
     }
 };
 

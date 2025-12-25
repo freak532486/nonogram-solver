@@ -15,8 +15,9 @@ export const btnStorageLoad = /** @type {!HTMLElement} */ (document.getElementBy
 export const btnStorageSave = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-save"));
 export const btnStorageDelete = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-delete"));
 
-export const btnSolve = /** @type {!HTMLElement} */ (document.getElementById("btn-solve"));
 export const btnHint = /** @type {!HTMLElement} */ (document.getElementById("btn-hint"));
+export const btnNext = /** @type {!HTMLElement} */ (document.getElementById("btn-next"));
+export const btnSolve = /** @type {!HTMLElement} */ (document.getElementById("btn-solve"));
 export const btnReset = /** @type {!HTMLElement} */ (document.getElementById("btn-reset"));
 
 export const inputNumRows = /** @type {!HTMLInputElement} */ (document.getElementById("input-num-rows"));
@@ -32,6 +33,7 @@ export const errlabelRowHints = /** @type {!HTMLElement} */ (document.getElement
 export const errlabelColHints = /** @type {!HTMLElement} */ (document.getElementById("errorlabel-col-hints"));
 
 export const nonogramContainer = /** @type {!HTMLElement} */ (document.getElementById("nonogram-container"));
+export const nonogramStatus = /** @type {!HTMLElement} */ (document.getElementById("nonogram-status"));
 
 /**
  * Parsed content of input components.
@@ -77,7 +79,7 @@ export function getSolverInput() {
 
 /**
  * Sets the current nonogram solver input.
- * @param {} input 
+ * @param {NonogramInput} input 
  */
 export function setSolverInput(input) {
     solverInput = input;

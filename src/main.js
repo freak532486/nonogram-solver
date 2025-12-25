@@ -21,17 +21,61 @@ const onBoardResize = () => {
  * Tries to fully solve the nonogram.
  */
 function doSolve() {
-    while (doHint()) {}
+    while (doNext()) {}
+}
+
+/**
+ * Updates the status message based on the status flags.
+ * 
+ * @param {number} statusFlags 
+ */
+function updateStatus(statusFlags) {
+    const deductionMade = statusFlags & DeductionFlags.BIT_DEDUCTION_MADE;
+    const solved = statusFlags & DeductionFlags.BIT_SOLVED;
+    const impossible = statusFlags & DeductionFlags.BIT_IMPOSSIBLE;
+
+    if (deductionMade && solved) {
+        dynamicUi.setStatusMessage("Deduction made; Puzzle is solved.");
+    } else if (deductionMade && !solved) {
+        dynamicUi.setStatusMessage("Deduction made.");
+    } else if (!deductionMade && impossible) {
+        dynamicUi.setStatusMessage("Puzzle is impossible.");
+    } else if (!deductionMade && solved) {
+        dynamicUi.setStatusMessage("Puzzle is solved.");
+    } else if (!deductionMade) {
+        dynamicUi.setStatusMessage("Solver cannot find a viable deduction.");
+    } else {
+        dynamicUi.setStatusMessage("Inconsistent state.")
+    }
+}
+
+/**
+ * Performs a deduction, displays it as a hint.
+ */
+function doHint() {
+    const solverInput = global.getSolverInput();
+    const next = solver.deduceNext(solverInput);
+
+    updateStatus(next.statusFlags);
+
+    if ((next.statusFlags & DeductionFlags.BIT_DEDUCTION_MADE) == 0) {
+        return;
+    }
+
+    /* Print hint */
+    dynamicUi.setStatusMessage("You can make a deduction in " + next.lineId + ".");
 }
 
 /**
  * Performs a deduction. Returns 'false' if no deduction can be made anymore.
  * 
- * @returns {boolean}
+ * @return {boolean}
  */
-function doHint() {
+function doNext() {
     const solverInput = global.getSolverInput();
     const next = solver.deduceNext(solverInput);
+
+    updateStatus(next.statusFlags);
 
     if ((next.statusFlags & DeductionFlags.BIT_DEDUCTION_MADE) == 0) {
         return false;
@@ -85,6 +129,7 @@ function onReload() {
     inputParsing.updateInputState();
     dynamicUi.rebuildNonogramContainer();
     dynamicUi.resizeTextAreas();
+    dynamicUi.setStatusMessage("No status");
     storage.refreshStorageUI();
 }
 
@@ -120,8 +165,10 @@ global.btnPrefillApply.onclick = () => {
     dynamicUi.updateNonogramBoardState();
 }
 
-global.btnSolve.onclick = doSolve;
 global.btnHint.onclick = doHint;
+global.btnNext.onclick = doNext;
+global.btnSolve.onclick = doSolve;
+
 global.btnReset.onclick = doReset;
 
 document.addEventListener("DOMContentLoaded", onReload);

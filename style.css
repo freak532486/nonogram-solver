@@ -151,7 +151,15 @@ h2 {
 }
 
 .buttons {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-template-rows: 1fr 1fr;
+    gap: 5px;
+
+    width: fit-content;
+
     margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 #input-prefill {
@@ -160,4 +168,16 @@ h2 {
     width: 100%;
     margin-bottom: 5px;
     resize: vertical;
+}
+
+#nonogram-status {
+    font-family: monospace;
+
+    background-color: gainsboro;
+
+    border: 2px inset;
+    padding: 2px;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-top: 10px;
 }

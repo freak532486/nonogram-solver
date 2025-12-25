@@ -263,3 +263,12 @@ export function resizeTextAreas() {
     global.inputColHints.style.height = `${numLines * 12}pt`;
     global.inputPrefill.style.height = `${numLines * 12}pt`;
 }
+
+/**
+ * Sets the current nonogram status message.
+ * 
+ * @param {string} msg 
+ */
+export function setStatusMessage(msg) {
+    global.nonogramStatus.textContent = msg;
+}
