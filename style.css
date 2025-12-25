@@ -120,8 +120,8 @@ h2 {
 
 #nonogram-container {
     display: grid;
-    align-items: center;
-    justify-items: center;
+    align-items: end;
+    justify-items: end;
 }
 
 .nonogram-cell {
@@ -142,12 +142,12 @@ h2 {
 
 .nonogram-rowhint {
     margin-right: 5px;
-    align-content: center;
+    align-content: right;
 }
 
 .nonogram-colhint {
     margin-bottom: 5px;
-    text-align: center;
+    text-align: bottom;
 }
 
 .buttons {
