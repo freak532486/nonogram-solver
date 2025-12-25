@@ -255,7 +255,7 @@ function createColHintSpan(col) {
  * Resized the hint text areas depending on the size of the board.
  */
 export function resizeTextAreas() {
-    var numLines = Math.max(global.getUserInput().numRows, global.getUserInput().numCols);
+    let numLines = Math.max(global.getUserInput().numRows, global.getUserInput().numCols);
     numLines = Math.min(HINT_AREA_MAX_LINES, Math.max(HINT_AREA_MIN_LINES, numLines));
 
     /* 12pt per line seems to work well. */

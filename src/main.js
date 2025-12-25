@@ -2,6 +2,7 @@ import * as global from "./global.js"
 import * as inputParsing from "./input-parsing.js"
 import * as dynamicUi from "./dynamic-ui.js"
 import * as solver from "./solver.js"
+import * as storage from "./storage.js"
 import { DeductionFlags, LineType, NonogramInput } from "./types/nonogram-types.js";
 
 const onHintChange = () => {
@@ -77,10 +78,35 @@ function onReload() {
     global.errlabelRowHints.textContent = state.rowHintsErr;
     global.errlabelColHints.textContent = state.colHintsErr;
 
+    /* Re-initialize storage */
+    storage.init();
+
     /* Rebuild nonogram */
     inputParsing.updateInputState();
     dynamicUi.rebuildNonogramContainer();
     dynamicUi.resizeTextAreas();
+    storage.refreshStorageUI();
+}
+
+global.btnStorageSave.onclick = () => {
+    const key = global.storageInput.value;
+    if (key) {
+        storage.storeCurrentState(key);
+    }
+};
+
+global.btnStorageLoad.onclick = () => {
+    const key = global.storageList.value;
+    if (key) {
+        storage.applyStoredInput(key);
+    }
+}
+
+global.btnStorageDelete.onclick = () => {
+    const key = global.storageList.value;
+    if (key) {
+        storage.deleteStoredState(key);
+    }
 }
 
 global.inputRowHints.oninput = onHintChange;

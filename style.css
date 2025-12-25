@@ -18,6 +18,38 @@ h2 {
     border: 2px inset;
 }
 
+#storage-container {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: row;
+
+    width: fit-content;
+    padding: 5px;
+    border: 2px ridge;
+    background-color: rgb(211, 216, 221);
+    gap: 5px;
+}
+
+#storage-container .inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#storage-container .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    margin-top: 0px;
+}
+
+#storage-list {
+    grid-row: 2;
+    grid-column: 1;
+    size: 10;
+}
+
 .dimensions {
     display: grid;
     grid-template-columns: auto 1fr;

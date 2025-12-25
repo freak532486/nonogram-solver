@@ -91,7 +91,7 @@ function lineDeduction(lineKnowledge, hints) {
     /* Create new line knowledge */
     const cells = [];
     for (let i = 0; i < lineLength; i++) {
-        var knowledge;
+        let knowledge;
         switch (newDeducedState[i]) {
             case 1: knowledge = CellKnowledge.DEFINITELY_BLACK; break;
             case 2: knowledge = CellKnowledge.DEFINITELY_WHITE; break;

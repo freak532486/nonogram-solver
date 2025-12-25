@@ -9,6 +9,12 @@ export const NONOGRAM_INITIAL_WIDTH = 5;
 export const NONOGRAM_INITIAL_HEIGHT = 5;
 
 /* DOM elements */
+export const storageInput = /** @type {!HTMLInputElement} */ (document.getElementById("storage-input"));
+export const storageList = /** @type {!HTMLSelectElement} */ (document.getElementById("storage-list"));
+export const btnStorageLoad = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-load"));
+export const btnStorageSave = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-save"));
+export const btnStorageDelete = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-delete"));
+
 export const btnSolve = /** @type {!HTMLElement} */ (document.getElementById("btn-solve"));
 export const btnHint = /** @type {!HTMLElement} */ (document.getElementById("btn-hint"));
 export const btnReset = /** @type {!HTMLElement} */ (document.getElementById("btn-reset"));

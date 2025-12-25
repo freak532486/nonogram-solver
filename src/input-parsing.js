@@ -101,8 +101,8 @@ function updateSolverInputState() {
     }
 
     /* On size change: Recreate entire solver input */
-    const widthChanged = global.getSolverInput().width == userInput.numCols;
-    const heightChanged = global.getSolverInput().height == userInput.numRows;
+    const widthChanged = global.getSolverInput().width != userInput.numCols;
+    const heightChanged = global.getSolverInput().height != userInput.numRows;
 
     if (widthChanged || heightChanged) {
         global.setSolverInput(NonogramInput.withEmptyBoard(userInput.rowHints, userInput.colHints));
@@ -135,8 +135,8 @@ export function applyPrefillToState() {
     const prefill = global.inputPrefill.value;
 
     const lines = prefill.split("\n");
-    for (var row = 0; row < lines.length; row++) {
-        var col = 0;
+    for (let row = 0; row < lines.length; row++) {
+        let col = 0;
 
         /* Ignore excess rows */
         if (row >= global.getSolverInput().height) {
