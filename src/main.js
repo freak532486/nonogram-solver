@@ -1,7 +1,7 @@
 import * as appState from "./app-state.js";
 import * as solver from "./solver.js";
 import * as storage from "./storage.js";
-import { DeductionFlags, LineType, NonogramInput } from "./types/nonogram-types.js";
+import { DeductionFlags, LineType, NonogramInput, NonogramState, SingleDeductionResult } from "./types/nonogram-types.js";
 import * as view from "./view.js";
 
 const onHintChange = () => {
@@ -19,7 +19,12 @@ const onBoardResize = () => {
  * Tries to fully solve the nonogram.
  */
 function doSolve() {
-    while (doNext()) {}
+    const input = buildSolverInput();
+
+    while (deduceAndApply(input).statusFlags & DeductionFlags.BIT_DEDUCTION_MADE) {}
+
+    appState.updateNonogramState(input.state);
+    view.refresh();
 }
 
 /**
@@ -65,36 +70,74 @@ function doHint() {
 }
 
 /**
- * Performs a deduction. Returns 'false' if no deduction can be made anymore.
- * 
- * @return {boolean}
+ * Performs a single deduction..
  */
 function doNext() {
+    /* Run solver */
     const solverInput = buildSolverInput();
-    const next = solver.deduceNext(solverInput);
+    const deduction = deduceAndApply(solverInput);
+
+    updateStatus(deduction.statusFlags);
+
+    if ((deduction.statusFlags & DeductionFlags.BIT_DEDUCTION_MADE) == 0) {
+        return false;
+    }
+
+    /* Update board state */
+    appState.updateNonogramState(solverInput.state);
+    view.refresh();
+    return true;
+}
+
+/**
+ * Performs a single deduction step. Mutates the given state to apply the deduction.
+ * 
+ * @param {NonogramInput} curInput 
+ * @returns {SingleDeductionResult}
+ */
+function deduceAndApply(curInput) {
+    /* Run solver */
+    const next = solver.deduceNext(curInput);
 
     updateStatus(next.statusFlags);
 
     if ((next.statusFlags & DeductionFlags.BIT_DEDUCTION_MADE) == 0) {
-        return false;
+        return next;
     }
 
     /* Apply deduction */
+    const curState = curInput.state;
     if (next.lineId.lineType == LineType.ROW) {
         const row = next.lineId.index;
-        for (let col = 0; col < solverInput.width; col++) {
-            solverInput.state.updateCell(col, row, next.newKnowledge.cells[col]);
+        for (let col = 0; col < curInput.width; col++) {
+            curState.updateCell(col, row, next.newKnowledge.cells[col]);
         }
     } else {
         const col = next.lineId.index;
-        for (let row = 0; row < solverInput.width; row++) {
-            solverInput.state.updateCell(col, row, next.newKnowledge.cells[row]);
+        for (let row = 0; row < curInput.width; row++) {
+            curState.updateCell(col, row, next.newKnowledge.cells[row]);
         }
     }
 
-    /* Update board state */
-    view.refresh();
-    return true;
+    return next;
+}
+
+function doUndo() {
+    if (appState.undoNonogramState()) {
+        view.refresh();
+        view.setStatusMessage("Undone.")
+    } else {
+        view.setStatusMessage("Nothing to undo.");
+    }
+}
+
+function doRedo() {
+    if (appState.redoNonogramState()) {
+        view.refresh();
+        view.setStatusMessage("Redone.");
+    } else {
+        view.setStatusMessage("Nothing to redo.");
+    }
 }
 
 function doReset() {
@@ -106,7 +149,7 @@ function buildSolverInput() {
     return new NonogramInput(
         appState.getCurrentState().rowHints,
         appState.getCurrentState().colHints,
-        appState.getCurrentState().nonogramState
+        NonogramState.clone(appState.getNonogramState())
     );
 }
 
@@ -117,6 +160,7 @@ function buildSolverInput() {
  */
 function onReload() {
     /* Write values into DOM */
+    appState.init();
     view.refresh();
     view.setStatusMessage("No status");
 
@@ -158,6 +202,8 @@ view.setButtonFunction(view.Button.APPLY_PREFILL, () => {
 view.setButtonFunction(view.Button.HINT, doHint);
 view.setButtonFunction(view.Button.NEXT, doNext);
 view.setButtonFunction(view.Button.SOLVE, doSolve);
+view.setButtonFunction(view.Button.UNDO, doUndo);
+view.setButtonFunction(view.Button.REDO, doRedo);
 view.setButtonFunction(view.Button.RESET, doReset);
 
 document.addEventListener("DOMContentLoaded", onReload);

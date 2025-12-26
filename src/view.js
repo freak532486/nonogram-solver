@@ -1,6 +1,6 @@
 import * as appState from "./app-state.js";
 import { SerializedState } from "./storage.js";
-import { CellKnowledge } from "./types/nonogram-types.js";
+import { CellKnowledge, NonogramState } from "./types/nonogram-types.js";
 
 const NONOGRAM_CELL_SIZE = "20px";
 const NONOGRAM_CELL_SIZE_CLICKED = "16px";
@@ -15,6 +15,8 @@ const btnStorageDelete = /** @type {!HTMLElement} */ (document.getElementById("b
 const btnHint = /** @type {!HTMLElement} */ (document.getElementById("btn-hint"));
 const btnNext = /** @type {!HTMLElement} */ (document.getElementById("btn-next"));
 const btnSolve = /** @type {!HTMLElement} */ (document.getElementById("btn-solve"));
+const btnUndo = /** @type {!HTMLElement} */ (document.getElementById("btn-undo"));
+const btnRedo = /** @type {!HTMLElement} */ (document.getElementById("btn-redo"));
 const btnReset = /** @type {!HTMLElement} */ (document.getElementById("btn-reset"));
 
 const btnPrefillApply = /** @type {HTMLTextAreaElement} */ (document.getElementById("button-prefill-apply"));
@@ -46,9 +48,12 @@ export const Button = Object.freeze({
     HINT: 3,
     NEXT: 4,
     SOLVE: 5,
-    RESET: 6,
 
-    APPLY_PREFILL: 7
+    UNDO: 6,
+    REDO: 7,
+    RESET: 8,
+
+    APPLY_PREFILL: 9
 });
 
 /**
@@ -78,6 +83,8 @@ export function setButtonFunction(button, fn) {
         case Button.HINT: btnHint.onclick = fn; break;
         case Button.NEXT: btnNext.onclick = fn; break;
         case Button.SOLVE: btnSolve.onclick = fn; break;
+        case Button.UNDO: btnUndo.onclick = fn; break;
+        case Button.REDO: btnRedo.onclick = fn; break;
         case Button.RESET: btnReset.onclick = fn; break;
         case Button.APPLY_PREFILL: btnPrefillApply.onclick = fn; break;
         default: throw new Error("Unknown button: " + button);
@@ -216,7 +223,7 @@ function refreshNonogramHintLabels() {
 
 function refreshNonogramBoardState() {
     /* Nothing to do if there is no solver input yet */
-    const solverState = appState.getCurrentState().nonogramState;
+    const solverState = appState.getNonogramState();
 
     for (let row = 0; row < solverState.height; row++) {
         for (let col = 0; col < solverState.width; col++) {
@@ -260,7 +267,7 @@ export function applySerializedState(state) {
  * @returns {string} 
  */
 function getCellColor(col, row) {
-    const state = appState.getCurrentState().nonogramState.getCell(col, row);
+    const state = appState.getNonogramState().getCell(col, row);
 
     switch (state) {
         case CellKnowledge.DEFINITELY_BLACK: return "#000000FF";
@@ -277,7 +284,7 @@ function getCellColor(col, row) {
  * @returns {string} 
  */
 function getCellColorHover(col, row) {
-    const state = appState.getCurrentState().nonogramState.getCell(col, row);
+    const state = appState.getNonogramState().getCell(col, row);
 
     switch (state) {
         case CellKnowledge.DEFINITELY_BLACK: return "#333333FF";
@@ -327,10 +334,14 @@ function createNonogramCell(col, row) {
         ret.style.height = NONOGRAM_CELL_SIZE;
 
         /* Update solver state */
-        const curKnowledge = appState.getCurrentState().nonogramState.getCell(col, row);
+        const curState = appState.getNonogramState();
+        const nextState = NonogramState.clone(curState);
+
+        const curKnowledge = curState.getCell(col, row);
         const nextKnowledge = nextCellKnowledge(curKnowledge, ev.button);
 
-        appState.getCurrentState().nonogramState.updateCell(col, row, nextKnowledge);
+        nextState.updateCell(col, row, nextKnowledge);
+        appState.updateNonogramState(nextState);
         refreshNonogramBoardState();
     }
 

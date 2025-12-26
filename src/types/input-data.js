@@ -1,4 +1,3 @@
-import { NonogramState } from "./nonogram-types.js";
 
 /**
  * Contains parsed data of all input fields (size, hints...)
@@ -52,13 +51,6 @@ export class AppState {
     #colHintsErr = "";
 
     /**
-     * Current board state.
-     * 
-     * @type {NonogramState}
-     */
-    #nonogramState;
-
-    /**
      * Creates the initial user input state.
      * 
      * @param {number} numRows 
@@ -67,7 +59,6 @@ export class AppState {
     constructor(numRows, numColums) {
         this.#numRows = numRows;
         this.#numCols = numColums;
-        this.#nonogramState = new NonogramState(numColums, numRows);
         this.#sanitizeHints();
     }
 
@@ -121,10 +112,6 @@ export class AppState {
         return this.#colHintsErr;
     }
 
-    get nonogramState() {
-        return this.#nonogramState;
-    }
-
     set numRows(numRows) {
         this.#numRows = numRows;
         this.#sanitizeHints();
@@ -159,10 +146,6 @@ export class AppState {
 
     set colHintsErr(colHintsErr) {
         this.#colHintsErr = colHintsErr;
-    }
-
-    set nonogramState(state) {
-        this.#nonogramState = state;
     }
 
 

@@ -1,5 +1,5 @@
 import { CellKnowledge, DeductionFlags, LineId, LineKnowledge, LineType, NonogramInput, SingleDeductionResult } from "./types/nonogram-types.js";
-import { arraysEqual as arraysEqual } from "./util.js";
+import { arraysEqual } from "./util.js";
 
 /**
  * Based on the given input, performs the next possible deduction for the nonogram.

@@ -5,7 +5,25 @@ import * as view from "./view.js";
 const NONOGRAM_INITIAL_WIDTH = 5;
 const NONOGRAM_INITIAL_HEIGHT = 5;
 
-let appState = new AppState(NONOGRAM_INITIAL_HEIGHT, NONOGRAM_INITIAL_WIDTH);
+/**
+ * @type {AppState}
+ */
+let appState;
+
+/**
+ * @type {Array<NonogramState>}
+ */
+let nonogramStateHistory;
+
+/**
+ * @type {number}
+ */
+let activeHistoryIdx;
+
+export function init() {
+    appState = new AppState(NONOGRAM_INITIAL_HEIGHT, NONOGRAM_INITIAL_WIDTH);
+    resetNonogramStateHistory(NonogramState.empty(appState.numCols, appState.numRows));
+}
 
 /**
  * Returns the current user input state.
@@ -44,11 +62,12 @@ export function updateStateFromView() {
     appState.colHintsErr = colHintsParsed.error;
 
     /* Regenerate board if necessary */
-    if (appState.nonogramState.width == appState.numCols && appState.nonogramState.height == appState.numRows) {
+    const curState = getNonogramState();
+    if (curState.width == appState.numCols && curState.height == appState.numRows) {
         return;
     }
 
-    appState.nonogramState = new NonogramState(appState.numCols, appState.numRows);
+    resetNonogramStateHistory(NonogramState.empty(appState.numCols, appState.numRows));
 }
 
 /**
@@ -121,47 +140,116 @@ class HintParsingResult {
 
 export function applyPrefillToState() {
     const prefill = view.getInputValue(view.Input.PREFILL);
+    const curState = getNonogramState();
+    const newState = NonogramState.clone(curState)
 
+    /* Fill new state */
     const lines = prefill.split("\n");
     for (let row = 0; row < lines.length; row++) {
         let col = 0;
 
         /* Ignore excess rows */
-        if (row >= appState.nonogramState.height) {
+        if (row >= curState.height) {
             break;
         }
 
         for (const symbol of lines[row]) {
             /* Ignore excess columns */
-            if (col >= appState.nonogramState.width) {
+            if (col >= curState.width) {
                 break;
             }
 
             /* Apply symbols with meaning, ignore the rest */
             if (symbol == '#') {
-                appState.nonogramState.updateCell(col, row, CellKnowledge.DEFINITELY_BLACK);
+                newState.updateCell(col, row, CellKnowledge.DEFINITELY_BLACK);
                 col++;
             }
 
             if (symbol == '.') {
-                appState.nonogramState.updateCell(col, row, CellKnowledge.UNKNOWN);
+                newState.updateCell(col, row, CellKnowledge.UNKNOWN);
                 col++;
             }
 
             if (symbol == 'X' || symbol == 'x') {
-                appState.nonogramState.updateCell(col, row, CellKnowledge.DEFINITELY_WHITE);
+                newState.updateCell(col, row, CellKnowledge.DEFINITELY_WHITE);
                 col++;
             }
         }
     }
+
+    /* Write into history */
+    updateNonogramState(newState);
 }
 
 export function resetBoardState() {
-    const state = appState.nonogramState;
+    const state = getNonogramState();
 
     for (let row = 0; row < state.height; row++) {
         for (let col = 0; col < state.width; col++) {
             state.updateCell(col, row, CellKnowledge.UNKNOWN);
         }
     }
+}
+
+/**
+ * Returns the currently active nonogram state.
+ * 
+ * @returns {NonogramState}
+ */
+export function getNonogramState() {
+    return nonogramStateHistory[activeHistoryIdx];
+}
+
+/**
+ * Updates the nonogram board state.
+ * 
+ * @param {NonogramState} newState 
+ */
+export function updateNonogramState(newState) {
+    /* Pop until active index is last index */
+    while (nonogramStateHistory.length > activeHistoryIdx + 1) {
+        nonogramStateHistory.pop();
+    }
+
+    /* Push new state */
+    nonogramStateHistory.push(newState);
+    activeHistoryIdx += 1;
+}
+
+/**
+ * Performs an undo on the nonogram state. Returns 'false' if there was no previous stored state, true otherwise.
+ * 
+ * @returns {boolean}
+ */
+export function undoNonogramState() {
+    if (activeHistoryIdx == 0) {
+        return false;
+    }
+
+    activeHistoryIdx -= 1;
+    return true;
+}
+
+/**
+ * Performs an redo on the nonogram state. Returns 'false' if there was no succeeding stored state, true otherwise.
+ * 
+ * @returns {boolean}
+ */
+export function redoNonogramState() {
+    if (activeHistoryIdx == nonogramStateHistory.length - 1) {
+        return false;
+    }
+
+    activeHistoryIdx += 1;
+    return true;
+}
+
+/**
+ * Resets the history back to containing just a single state.
+ * 
+ * @param {NonogramState} state 
+ */
+export function resetNonogramStateHistory(state) {
+    nonogramStateHistory = [ state ];
+    activeHistoryIdx = 0;
 }

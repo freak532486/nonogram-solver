@@ -119,12 +119,36 @@ export class NonogramState {
     /**
      * Creates an empty board.
      * @param {number} width 
-     * @param {number} height 
+     * @param {number} height
+     * @param {Array<CellKnowledge>} cells
+     * 
      */
-    constructor (width, height) {
+    constructor (width, height, cells) {
         this.#width = width;
         this.#height = height;
-        this.#cells = Array(width * height).fill(CellKnowledge.UNKNOWN);
+        this.#cells = cells;
+    }
+
+    /**
+     * Creates an empty nonogram board state.
+     * 
+     * @param {number} width 
+     * @param {number} height 
+     * @returns {NonogramState}
+     */
+    static empty(width, height) {
+        const cells = Array(width * height).fill(CellKnowledge.UNKNOWN);
+        return new NonogramState(width, height, cells);
+    }
+
+    /**
+     * Clones an existing nonogram board state.
+     * 
+     * @param {NonogramState} state 
+     * @returns {NonogramState}
+     */
+    static clone(state) {
+        return new NonogramState(state.width, state.height, [...state.#cells]);
     }
 
     get width() {
@@ -237,7 +261,7 @@ export class NonogramInput {
      * @param {Array<Array<number>>} colHints
      */
     static withEmptyBoard(rowHints, colHints) {
-        return new NonogramInput(rowHints, colHints, new NonogramState(colHints.length, rowHints.length));
+        return new NonogramInput(rowHints, colHints, NonogramState.empty(colHints.length, rowHints.length));
     }
 
     /**
