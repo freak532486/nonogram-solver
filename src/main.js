@@ -1,7 +1,7 @@
 import * as appState from "./app-state.js";
 import * as solver from "./solver.js";
 import * as storage from "./storage.js";
-import { DeductionFlags, LineType, NonogramInput, NonogramState, SingleDeductionResult } from "./types/nonogram-types.js";
+import { DeductionStatus, LineType, NonogramInput, NonogramState, SingleDeductionResult } from "./types/nonogram-types.js";
 import * as view from "./view.js";
 
 const onHintChange = () => {
@@ -20,35 +20,45 @@ const onBoardResize = () => {
  */
 function doSolve() {
     const input = buildSolverInput();
+    let anythingDeduced = false;
 
-    while (deduceAndApply(input).statusFlags & DeductionFlags.BIT_DEDUCTION_MADE) {}
+    while (true) {
+        const deductionResult = deduceAndApply(input);
+        if (deductionResult.status != DeductionStatus.DEDUCTION_MADE) {
+            break;
+        }
 
-    appState.updateNonogramState(input.state);
+        anythingDeduced = true;
+    }
+
+    if (anythingDeduced) {
+        appState.updateNonogramState(input.state);
+    }
     view.refresh();
 }
 
 /**
  * Updates the status message based on the status flags.
  * 
- * @param {number} statusFlags 
+ * @param {DeductionStatus} statusFlags 
  */
 function updateStatus(statusFlags) {
-    const deductionMade = statusFlags & DeductionFlags.BIT_DEDUCTION_MADE;
-    const solved = statusFlags & DeductionFlags.BIT_SOLVED;
-    const impossible = statusFlags & DeductionFlags.BIT_IMPOSSIBLE;
+    switch (statusFlags) {
+        case DeductionStatus.COULD_NOT_DEDUCE:
+            view.setStatusMessage("Solver cannot find a viable deduction.");
+            break;
 
-    if (deductionMade && solved) {
-        view.setStatusMessage("Deduction made; Puzzle is solved.");
-    } else if (deductionMade && !solved) {
-        view.setStatusMessage("Deduction made.");
-    } else if (!deductionMade && impossible) {
-        view.setStatusMessage("Puzzle is impossible.");
-    } else if (!deductionMade && solved) {
-        view.setStatusMessage("Puzzle is solved.");
-    } else if (!deductionMade) {
-        view.setStatusMessage("Solver cannot find a viable deduction.");
-    } else {
-        view.setStatusMessage("Inconsistent state.")
+        case DeductionStatus.DEDUCTION_MADE:
+            view.setStatusMessage("Deduction made.");
+            break;
+
+        case DeductionStatus.WAS_IMPOSSIBLE:
+            view.setStatusMessage("Puzzle is impossible.");
+            break;
+
+        case DeductionStatus.WAS_SOLVED:
+            view.setStatusMessage("Puzzle is solved.");
+            break;
     }
 }
 
@@ -57,16 +67,15 @@ function updateStatus(statusFlags) {
  */
 function doHint() {
     const solverInput = buildSolverInput();
-    const next = solver.deduceNext(solverInput);
+    const deduction = solver.deduceNext(solverInput);
 
-    updateStatus(next.statusFlags);
-
-    if ((next.statusFlags & DeductionFlags.BIT_DEDUCTION_MADE) == 0) {
+    updateStatus(deduction.status);
+    if (deduction.status != DeductionStatus.DEDUCTION_MADE) {
         return;
     }
 
     /* Print hint */
-    view.setStatusMessage("You can make a deduction in " + next.lineId + ".");
+    view.setStatusMessage("You can make a deduction in " + deduction.lineId + ".");
 }
 
 /**
@@ -77,9 +86,8 @@ function doNext() {
     const solverInput = buildSolverInput();
     const deduction = deduceAndApply(solverInput);
 
-    updateStatus(deduction.statusFlags);
-
-    if ((deduction.statusFlags & DeductionFlags.BIT_DEDUCTION_MADE) == 0) {
+    updateStatus(deduction.status);
+    if (deduction.status != DeductionStatus.DEDUCTION_MADE) {
         return false;
     }
 
@@ -97,29 +105,28 @@ function doNext() {
  */
 function deduceAndApply(curInput) {
     /* Run solver */
-    const next = solver.deduceNext(curInput);
+    const deduction = solver.deduceNext(curInput);
 
-    updateStatus(next.statusFlags);
-
-    if ((next.statusFlags & DeductionFlags.BIT_DEDUCTION_MADE) == 0) {
-        return next;
+    updateStatus(deduction.status);
+    if (deduction.status != DeductionStatus.DEDUCTION_MADE) {
+        return deduction;
     }
 
     /* Apply deduction */
     const curState = curInput.state;
-    if (next.lineId.lineType == LineType.ROW) {
-        const row = next.lineId.index;
+    if (deduction.lineId.lineType == LineType.ROW) {
+        const row = deduction.lineId.index;
         for (let col = 0; col < curInput.width; col++) {
-            curState.updateCell(col, row, next.newKnowledge.cells[col]);
+            curState.updateCell(col, row, deduction.newKnowledge.cells[col]);
         }
     } else {
-        const col = next.lineId.index;
+        const col = deduction.lineId.index;
         for (let row = 0; row < curInput.width; row++) {
-            curState.updateCell(col, row, next.newKnowledge.cells[row]);
+            curState.updateCell(col, row, deduction.newKnowledge.cells[row]);
         }
     }
 
-    return next;
+    return deduction;
 }
 
 function doUndo() {

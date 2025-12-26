@@ -300,30 +300,19 @@ export class NonogramInput {
  * Flags for deduction result.
  * @enum {number}
  */
-export const DeductionFlags = Object.freeze({
-    /**
-     * If this bit is set, a deduction was made.
-     * If this bit is not set and the nonogram is neither solved nor impossible, the solver is not sure what to do.
-     */
-    BIT_DEDUCTION_MADE: 0x0001,
-
-    /**
-     * If this bit is set, then the nonogram is solved. If no deduction was made, the nonogram was already solved.
-     */
-    BIT_SOLVED: 0x0010,
-
-    /**
-     * If this bit is set, then the nonogram is impossible.
-     */
-    BIT_IMPOSSIBLE: 0x0100
+export const DeductionStatus = Object.freeze({
+    COULD_NOT_DEDUCE: 0,
+    DEDUCTION_MADE: 1,
+    WAS_IMPOSSIBLE: 2,
+    WAS_SOLVED: 3,
 });
 
 export class SingleDeductionResult {
     /**
      * Status flags for this deduction.
-     * @type {DeductionFlags}
+     * @type {DeductionStatus}
      */
-    #statusFlags;
+    #status;
 
     /**
      * Line for which a deduction was made
@@ -339,7 +328,7 @@ export class SingleDeductionResult {
 
     /**
      * 
-     * @param {DeductionFlags} statusFlags 
+     * @param {DeductionStatus} statusFlags 
      * @param {LineId | null} lineId 
      * @param {LineKnowledge | null} newKnowledge 
      */
@@ -351,20 +340,31 @@ export class SingleDeductionResult {
             throw new Error("Either both are supplied or none");
         }
 
-        this.#statusFlags = statusFlags;
+        this.#status = statusFlags;
         this.#lineId = lineId;
         this.#newKnowledge = newKnowledge;
     }
 
     /**
      * Creates a "nothing was deduced" deduction result.
+     * 
+     * @returns {SingleDeductionResult}
      */
     static noDeduction() {
         return new SingleDeductionResult(0, null, null);
     }
 
-    get statusFlags() {
-        return this.#statusFlags;
+    /**
+     * Creates a "state was impossible" deduction result.
+     * 
+     * @returns {SingleDeductionResult}
+     */
+    static impossible() {
+        return new SingleDeductionResult(DeductionStatus.WAS_IMPOSSIBLE, null, null);
+    }
+
+    get status() {
+        return this.#status;
     }
 
     get lineId() {

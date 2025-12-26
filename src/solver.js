@@ -1,4 +1,4 @@
-import { CellKnowledge, DeductionFlags, LineId, LineKnowledge, LineType, NonogramInput, SingleDeductionResult } from "./types/nonogram-types.js";
+import { CellKnowledge, DeductionStatus, LineId, LineKnowledge, LineType, NonogramInput, SingleDeductionResult } from "./types/nonogram-types.js";
 import { arraysEqual } from "./util.js";
 
 /**
@@ -7,21 +7,29 @@ import { arraysEqual } from "./util.js";
  * @returns {SingleDeductionResult}
  */
 export function deduceNext(input) {
+    let allLinesSolved = true;
+
     /* Try deducing rows */
     for (let row = 0; row < input.height; row++) {
         const curKnowledge = input.state.getRowKnowledge(row);
         const newKnowledge = lineDeduction(curKnowledge, input.rowHints[row]);
 
-        const somethingDeduced = !arraysEqual(curKnowledge.cells, newKnowledge.cells);
+        if (newKnowledge.status == DeductionStatus.WAS_IMPOSSIBLE) {
+            return SingleDeductionResult.impossible();
+        }
 
-        if (!somethingDeduced) {
+        const solved = newKnowledge.status == DeductionStatus.WAS_SOLVED;
+        const deductionMade = newKnowledge.status == DeductionStatus.DEDUCTION_MADE;
+        allLinesSolved = allLinesSolved && solved;
+
+        if (!deductionMade) {
             continue;
         }
 
         return new SingleDeductionResult(
-            DeductionFlags.BIT_DEDUCTION_MADE,
+            DeductionStatus.DEDUCTION_MADE,
             new LineId(LineType.ROW, row),
-            newKnowledge
+            newKnowledge.newKnowledge
         );
     }
 
@@ -30,32 +38,60 @@ export function deduceNext(input) {
         const curKnowledge = input.state.getColKnowledge(col);
         const newKnowledge = lineDeduction(curKnowledge, input.colHints[col]);
 
-        const somethingDeduced = !arraysEqual(curKnowledge.cells, newKnowledge.cells);
+        if (newKnowledge.status == DeductionStatus.WAS_IMPOSSIBLE) {
+            return SingleDeductionResult.impossible();
+        }
 
-        if (!somethingDeduced) {
+        const solved = newKnowledge.status == DeductionStatus.WAS_SOLVED;
+        const deductionMade = newKnowledge.status == DeductionStatus.DEDUCTION_MADE;
+        allLinesSolved = allLinesSolved && solved;
+
+        if (!deductionMade) {
             continue;
         }
 
         return new SingleDeductionResult(
-            DeductionFlags.BIT_DEDUCTION_MADE,
+            DeductionStatus.DEDUCTION_MADE,
             new LineId(LineType.COLUMN, col),
-            newKnowledge
+            newKnowledge.newKnowledge
         );
     }
 
     /* Nothing was deducible */
-    return SingleDeductionResult.noDeduction();
+    if (allLinesSolved) {
+        return new SingleDeductionResult(DeductionStatus.WAS_SOLVED, null, null);
+    } else {
+        return new SingleDeductionResult(DeductionStatus.COULD_NOT_DEDUCE, null, null);
+    }
+}
+
+class LineDeductionResult {
+
+    /** @type {DeductionStatus} */
+    status;
+
+    /** @type {LineKnowledge | null} */
+    newKnowledge;
+
+    /**
+     * @param {DeductionStatus} status 
+     * @param {LineKnowledge | null} newKnowledge 
+     */
+    constructor (status, newKnowledge) {
+        this.status = status;
+        this.newKnowledge = newKnowledge;
+    }
 }
 
 /**
  * This function checks all possible configurations of the line. It skips configurations that are impossible w.r.t.
  * the given line knowledge.
  * Squares that are always black in all remaining configurations are deduced as black, vice versa for white. The
- * function returns the new deduced line knowledge.
+ * function returns the new deduced line knowledge, or null if the current line state is impossible.
  * 
  * @param {LineKnowledge} lineKnowledge 
  * @param {Array<number>} hints
- * @returns {LineKnowledge}
+ * @returns {LineDeductionResult}
  */
 function lineDeduction(lineKnowledge, hints) {
     const lineLength = lineKnowledge.cells.length;
@@ -88,6 +124,11 @@ function lineDeduction(lineKnowledge, hints) {
         nextConfiguration(hints, gaps, lineLength, gapsValid);
     } while (gaps.length > 0);
 
+    /* Check if line is impossible */
+    if (newDeducedState[0] == 0) {
+        return new LineDeductionResult(DeductionStatus.WAS_IMPOSSIBLE, null);
+    }
+
     /* Create new line knowledge */
     const cells = [];
     for (let i = 0; i < lineLength; i++) {
@@ -102,8 +143,21 @@ function lineDeduction(lineKnowledge, hints) {
         cells.push(knowledge);
     }
 
+    const newKnowledge = new LineKnowledge(cells);
+    const deductionMade = !arraysEqual(newKnowledge.cells, lineKnowledge.cells);
+    const isSolved = !newKnowledge.cells.some(cell => cell == CellKnowledge.UNKNOWN);
+
+    let status;
+    if (deductionMade) {
+        status = DeductionStatus.DEDUCTION_MADE;
+    } else if (isSolved) {
+        status = DeductionStatus.WAS_SOLVED;
+    } else {
+        status = DeductionStatus.COULD_NOT_DEDUCE;
+    }
+
     /* Done */
-    return new LineKnowledge(cells);
+    return new LineDeductionResult(status, newKnowledge);
 }
 
 /**
