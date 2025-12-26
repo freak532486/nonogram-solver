@@ -5,49 +5,6 @@ import { NonogramInput } from "./types/nonogram-types.js";
 export const NONOGRAM_CELL_SIZE = "20px";
 export const NONOGRAM_CELL_SIZE_CLICKED = "16px";
 
-export const NONOGRAM_INITIAL_WIDTH = 5;
-export const NONOGRAM_INITIAL_HEIGHT = 5;
-
-/* DOM elements */
-export const storageInput = /** @type {!HTMLInputElement} */ (document.getElementById("storage-input"));
-export const storageList = /** @type {!HTMLSelectElement} */ (document.getElementById("storage-list"));
-export const btnStorageLoad = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-load"));
-export const btnStorageSave = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-save"));
-export const btnStorageDelete = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-delete"));
-
-export const btnHint = /** @type {!HTMLElement} */ (document.getElementById("btn-hint"));
-export const btnNext = /** @type {!HTMLElement} */ (document.getElementById("btn-next"));
-export const btnSolve = /** @type {!HTMLElement} */ (document.getElementById("btn-solve"));
-export const btnReset = /** @type {!HTMLElement} */ (document.getElementById("btn-reset"));
-
-export const inputNumRows = /** @type {!HTMLInputElement} */ (document.getElementById("input-num-rows"));
-export const inputNumCols = /** @type {!HTMLInputElement} */ (document.getElementById("input-num-cols"));
-
-export const inputRowHints = /** @type {!HTMLTextAreaElement} */ (document.getElementById("input-row-hints"));
-export const inputColHints = /** @type {!HTMLTextAreaElement} */ (document.getElementById("input-col-hints"));
-
-export const inputPrefill = /** @type {HTMLTextAreaElement} */ (document.getElementById("input-prefill"));
-export const btnPrefillApply = /** @type {HTMLTextAreaElement} */ (document.getElementById("button-prefill-apply"));
-
-export const errlabelRowHints = /** @type {!HTMLElement} */ (document.getElementById("errorlabel-row-hints"));
-export const errlabelColHints = /** @type {!HTMLElement} */ (document.getElementById("errorlabel-col-hints"));
-
-export const nonogramContainer = /** @type {!HTMLElement} */ (document.getElementById("nonogram-container"));
-export const nonogramStatus = /** @type {!HTMLElement} */ (document.getElementById("nonogram-status"));
-
-/**
- * Parsed content of input components.
- */
-let userInput = new UserInput(NONOGRAM_INITIAL_HEIGHT, NONOGRAM_INITIAL_WIDTH);
-
-/**
- * Returns the current user input state.
- * 
- * @returns {UserInput}
- */
-export function getUserInput() {
-    return userInput;
-}
 
 /**
  * Current nonogram state for solver. Is 'null' if not initialized.

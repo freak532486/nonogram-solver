@@ -1,7 +1,10 @@
-import * as dynamicUi from "./dynamic-ui.js"
+import * as appState from "./app-state.js"
 import * as global from "./global.js"
-import * as inputParsing from "./input-parsing.js"
+import * as view from "./view.js"
 import { CellKnowledge } from "./types/nonogram-types.js";
+
+const storageList = /** @type {!HTMLSelectElement} */ (document.getElementById("storage-list"));
+const storageInput = /** @type {!HTMLInputElement} */ (document.getElementById("storage-input"));
 
 const STORAGE_KEY = "storage";
 const DEFAULT_STATE_KEY = "(Default)";
@@ -15,6 +18,11 @@ export function init() {
     }
 
     initialized = true;
+
+    /* Write selected list value into textbox */
+    storageList.oninput = () => {
+        storageInput.value = storageList.value;
+    }
 
     /* Create default state and store */
     const defaultState = new SerializedState();
@@ -36,14 +44,15 @@ export function init() {
  */
 export function storeCurrentState(key) {
     /* Create serializable state from global state */
+    const state = appState.getCurrentState();
     const toStore = new SerializedState();
 
     toStore.key = key;
-    toStore.numRows = global.getUserInput().numRows;
-    toStore.numCols = global.getUserInput().numCols;
-    toStore.rowHints = global.inputRowHints.value;
-    toStore.colHints = global.inputColHints.value;
-    toStore.prefill = global.inputPrefill.value;
+    toStore.numRows = state.numRows;
+    toStore.numCols = state.numCols;
+    toStore.rowHints = view.getInputValue(view.Input.ROW_HINTS);
+    toStore.colHints = view.getInputValue(view.Input.COLUMN_HINTS);
+    toStore.prefill = view.getInputValue(view.Input.PREFILL);
     toStore.state = "";
 
     /* Build state from nonogram state */
@@ -110,8 +119,9 @@ function storeState(state, location = Location.BOTTOM) {
  * Applies the stored input to the global state.
  * 
  * @param {string} key 
+ * @returns {SerializedState}
  */
-export function applyStoredInput(key) {
+export function fetchStoredInput(key) {
     const storage = getCurrentStorage();
 
     const state = storage.states.find(state => state.key == key) ?? null;
@@ -119,42 +129,7 @@ export function applyStoredInput(key) {
         throw new Error("State with key " + key + " does not exist.");
     }
 
-    /* Apply state (except solver state) */
-    global.inputNumRows.value = String(state.numRows);
-    global.inputNumCols.value = String(state.numCols);
-    global.inputRowHints.value = state.rowHints;
-    global.inputColHints.value = state.colHints;
-    global.inputPrefill.value = state.prefill;
-
-    /* Recalulate state */
-    inputParsing.updateInputState();
-    dynamicUi.resizeTextAreas();
-    dynamicUi.rebuildNonogramContainer();
-
-    /* Apply stored solver state */
-    const lines = state.state.split("\n");
-    for (var row = 0; row < global.getSolverInput().height; row++) {
-        for (var col = 0; col < global.getSolverInput().width; col++) {
-            const symbol = lines[row].charAt(col);
-
-            switch (symbol) {
-                case '#':
-                    global.getSolverInput().state.updateCell(col, row, CellKnowledge.DEFINITELY_BLACK);
-                    break;
-
-                case 'X':
-                    global.getSolverInput().state.updateCell(col, row, CellKnowledge.DEFINITELY_WHITE);
-                    break;
-
-                case '.':
-                    global.getSolverInput().state.updateCell(col, row, CellKnowledge.UNKNOWN);
-                    break;
-
-                default:
-                    throw new Error("Impossible case");
-            }
-        }
-    }
+    return state;
 }
 
 /**
@@ -185,7 +160,25 @@ export function refreshStorageUI() {
         ret.textContent = key;
         return ret;
     });
-    global.storageList.replaceChildren(...elements);
+    storageList.replaceChildren(...elements);
+}
+
+/**
+ * Returns the currently selected value in the storage key list.
+ * 
+ * @returns {string}
+ */
+export function getSelectedListValue() {
+    return storageList.value;
+}
+
+/**
+ * Returns the currently contained string in the storage textbox.
+ * 
+ * @returns {string}
+ */
+export function getTextboxValue() {
+    return storageInput.value;
 }
 
 /**
@@ -238,7 +231,7 @@ class StorageContent {
     }
 }
 
-class SerializedState {
+export class SerializedState {
     /** @type{string} */ key = "";
     /** @type{number} */ numRows = 0;
     /** @type{number} */ numCols = 0;

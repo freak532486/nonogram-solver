@@ -1,21 +1,158 @@
+import * as appState from "./app-state.js";
 import * as global from "./global.js";
+import { SerializedState } from "./storage.js";
 import { CellKnowledge } from "./types/nonogram-types.js";
 
 const HINT_AREA_MIN_LINES = 2;
 const HINT_AREA_MAX_LINES = 15;
 
+const btnStorageLoad = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-load"));
+const btnStorageSave = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-save"));
+const btnStorageDelete = /** @type {!HTMLElement} */ (document.getElementById("btn-storage-delete"));
+
+const btnHint = /** @type {!HTMLElement} */ (document.getElementById("btn-hint"));
+const btnNext = /** @type {!HTMLElement} */ (document.getElementById("btn-next"));
+const btnSolve = /** @type {!HTMLElement} */ (document.getElementById("btn-solve"));
+const btnReset = /** @type {!HTMLElement} */ (document.getElementById("btn-reset"));
+
+const btnPrefillApply = /** @type {HTMLTextAreaElement} */ (document.getElementById("button-prefill-apply"));
+
+const inputNumRows = /** @type {!HTMLInputElement} */ (document.getElementById("input-num-rows"));
+const inputNumCols = /** @type {!HTMLInputElement} */ (document.getElementById("input-num-cols"));
+
+const inputRowHints = /** @type {!HTMLTextAreaElement} */ (document.getElementById("input-row-hints"));
+const inputColHints = /** @type {!HTMLTextAreaElement} */ (document.getElementById("input-col-hints"));
+
+const inputPrefill = /** @type {HTMLTextAreaElement} */ (document.getElementById("input-prefill"));
+
+const errlabelRowHints = /** @type {!HTMLElement} */ (document.getElementById("errorlabel-row-hints"));
+const errlabelColHints = /** @type {!HTMLElement} */ (document.getElementById("errorlabel-col-hints"));
+
+const nonogramContainer = /** @type {!HTMLElement} */ (document.getElementById("nonogram-container"));
+const nonogramStatus = /** @type {!HTMLElement} */ (document.getElementById("nonogram-status"));
+
+/**
+ * Enum of all the buttons on the view.
+ * 
+ * @enum {number}
+ */
+export const Button = Object.freeze({
+    LOAD: 0,
+    SAVE: 1,
+    DELETE: 2,
+
+    HINT: 3,
+    NEXT: 4,
+    SOLVE: 5,
+    RESET: 6,
+
+    APPLY_PREFILL: 7
+});
+
+/**
+ * Enum of all the inputs on the view.
+ * 
+ * @enum {number}
+ */
+export const Input = Object.freeze({
+    NUM_ROWS: 0,
+    NUM_COLUMNS: 1,
+    ROW_HINTS: 2,
+    COLUMN_HINTS: 3,
+    PREFILL: 4
+})
+
+/**
+ * Sets the function that is executed when clicking the given button.
+ * 
+ * @param {Button} button 
+ * @param {() => void} fn 
+ */
+export function setButtonFunction(button, fn) {
+    switch (button) {
+        case Button.LOAD: btnStorageLoad.onclick = fn; break;
+        case Button.SAVE: btnStorageSave.onclick = fn; break;
+        case Button.DELETE: btnStorageDelete.onclick = fn; break;
+        case Button.HINT: btnHint.onclick = fn; break;
+        case Button.NEXT: btnNext.onclick = fn; break;
+        case Button.SOLVE: btnSolve.onclick = fn; break;
+        case Button.RESET: btnReset.onclick = fn; break;
+        case Button.APPLY_PREFILL: btnPrefillApply.onclick = fn; break;
+        default: throw new Error("Unknown button: " + button);
+    }
+}
+
+/**
+ * Returns the current value inside the given input.
+ * 
+ * @param {Input} input
+ * @return {string} 
+ */
+export function getInputValue(input) {
+    switch (input) {
+        case Input.NUM_ROWS: return inputNumRows.value;
+        case Input.NUM_COLUMNS: return inputNumCols.value;
+        case Input.ROW_HINTS: return inputRowHints.value;
+        case Input.COLUMN_HINTS: return inputColHints.value;
+        case Input.PREFILL: return inputPrefill.value;
+        default: throw new Error("Unknown input: " + input);
+    }
+}
+
+/**
+ * Sets the input listener for an input field.
+ * 
+ * @param {Input} input 
+ * @param {(ev: Event) => void} fn 
+ */
+export function setInputListener(input, fn) {
+    switch (input) {
+        case Input.NUM_ROWS: inputNumRows.oninput = fn; break;
+        case Input.NUM_COLUMNS: inputNumCols.oninput = fn; break;
+        case Input.ROW_HINTS: inputRowHints.oninput = fn; break;
+        case Input.COLUMN_HINTS: inputColHints.oninput = fn; break;
+        case Input.PREFILL: inputPrefill.oninput = fn; break;
+        default: throw new Error("Unknown input: " + input);
+    }
+}
+
+/**
+ * Refreshes the view so that it accurately depicts the current state.
+ */
+export function refresh() {
+    writeStateToView();
+    refreshNonogramContainer();
+    refreshNonogramBoardState();
+    refreshNonogramHintLabels();
+    resizeTextAreas();
+}
+
+/**
+ * Writes the current application state into the input fields.
+ */
+function writeStateToView() {
+    const state = appState.getCurrentState();
+
+    inputNumRows.value = String(state.numRows);
+    inputNumCols.value = String(state.numCols);
+    inputRowHints.value = state.rowHints.map(arr => arr.join(" ")).join("\n");
+    inputColHints.value = state.colHints.map(arr => arr.join(" ")).join("\n");
+    errlabelRowHints.textContent = state.rowHintsErr;
+    errlabelColHints.textContent = state.colHintsErr;
+}
+
 /**
  * Given the values in 'input', rebuilds the nonogram container to match the input.
  */
-export function rebuildNonogramContainer() {
-    const userInput = global.getUserInput();
+function refreshNonogramContainer() {
+    const userInput = appState.getCurrentState();
 
     /* Build list of new children */
     let newChildren = [];
 
     /* Prepare layout grid */
-    global.nonogramContainer.style.gridTemplateColumns = `repeat(${userInput.numCols + 1}, auto)`;
-    global.nonogramContainer.style.gridTemplateRows = `repeat(${userInput.numRows + 1}, auto);`;
+    nonogramContainer.style.gridTemplateColumns = `repeat(${userInput.numCols + 1}, auto)`;
+    nonogramContainer.style.gridTemplateRows = `repeat(${userInput.numRows + 1}, auto);`;
 
     /* Add hint elements */
     for (let row = 0; row < userInput.numRows; row++) {
@@ -34,16 +171,16 @@ export function rebuildNonogramContainer() {
     }
 
     /* Replace content */
-    global.nonogramContainer.replaceChildren(...newChildren);
-    updateNonogramHintLabels();
-    updateNonogramBoardState();
+    nonogramContainer.replaceChildren(...newChildren);
+    refreshNonogramHintLabels();
+    refreshNonogramBoardState();
 }
 
 /**
  * Updates the text inside the nonogram hint spans.
  */
-export function updateNonogramHintLabels() {
-    const userInput = global.getUserInput();
+function refreshNonogramHintLabels() {
+    const userInput = appState.getCurrentState();
 
     /* Rows */
     for (let row = 0; row < userInput.numRows; row++) {
@@ -71,11 +208,11 @@ export function updateNonogramHintLabels() {
     }
 
     /* Error labels */
-    global.errlabelRowHints.replaceChildren(document.createTextNode(userInput.rowHintsErr));
-    global.errlabelColHints.replaceChildren(document.createTextNode(userInput.colHintsErr));
+    errlabelRowHints.replaceChildren(document.createTextNode(userInput.rowHintsErr));
+    errlabelColHints.replaceChildren(document.createTextNode(userInput.colHintsErr));
 }
 
-export function updateNonogramBoardState() {
+function refreshNonogramBoardState() {
     /* Nothing to do if there is no solver input yet */
     if (!global.isSolverInputInitialized()) {
         return;
@@ -101,6 +238,21 @@ export function updateNonogramBoardState() {
         }
     }
 }
+
+/**
+ * Applies the given serialized state to the DOM elements.
+ * 
+ * @param {SerializedState} state 
+ */
+export function applySerializedState(state) {
+    /* Apply state (except solver state) */
+    inputNumRows.value = String(state.numRows);
+    inputNumCols.value = String(state.numCols);
+    inputRowHints.value = state.rowHints;
+    inputColHints.value = state.colHints;
+    inputPrefill.value = state.prefill;
+}
+
 
 /**
  * Returns the color that the cell at the given location should have based on the current solver state.
@@ -181,7 +333,7 @@ function createNonogramCell(col, row) {
         const nextKnowledge = nextCellKnowledge(curKnowledge, ev.button);
 
         global.getSolverInput().state.updateCell(col, row, nextKnowledge);
-        updateNonogramBoardState();
+        refreshNonogramBoardState();
     }
 
     return ret;
@@ -254,14 +406,14 @@ function createColHintSpan(col) {
 /**
  * Resized the hint text areas depending on the size of the board.
  */
-export function resizeTextAreas() {
-    let numLines = Math.max(global.getUserInput().numRows, global.getUserInput().numCols);
+function resizeTextAreas() {
+    let numLines = Math.max(appState.getCurrentState().numRows, appState.getCurrentState().numCols);
     numLines = Math.min(HINT_AREA_MAX_LINES, Math.max(HINT_AREA_MIN_LINES, numLines));
 
     /* 12pt per line seems to work well. */
-    global.inputRowHints.style.height = `${numLines * 12}pt`;
-    global.inputColHints.style.height = `${numLines * 12}pt`;
-    global.inputPrefill.style.height = `${numLines * 12}pt`;
+    inputRowHints.style.height = `${numLines * 12}pt`;
+    inputColHints.style.height = `${numLines * 12}pt`;
+    inputPrefill.style.height = `${numLines * 12}pt`;
 }
 
 /**
@@ -270,5 +422,5 @@ export function resizeTextAreas() {
  * @param {string} msg 
  */
 export function setStatusMessage(msg) {
-    global.nonogramStatus.textContent = msg;
+    nonogramStatus.textContent = msg;
 }

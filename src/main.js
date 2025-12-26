@@ -1,19 +1,18 @@
 import * as global from "./global.js"
-import * as inputParsing from "./input-parsing.js"
-import * as dynamicUi from "./dynamic-ui.js"
+import * as appState from "./app-state.js"
+import * as view from "./view.js"
 import * as solver from "./solver.js"
 import * as storage from "./storage.js"
 import { DeductionFlags, LineType, NonogramInput } from "./types/nonogram-types.js";
 
 const onHintChange = () => {
-    inputParsing.updateInputState();
-    dynamicUi.updateNonogramHintLabels();
+    appState.updateStateFromView();
+    view.refresh();
 };
 
 const onBoardResize = () => {
-    inputParsing.updateInputState();
-    dynamicUi.resizeTextAreas();
-    dynamicUi.rebuildNonogramContainer();
+    appState.updateStateFromView();
+    view.refresh();
 };
 
 
@@ -35,17 +34,17 @@ function updateStatus(statusFlags) {
     const impossible = statusFlags & DeductionFlags.BIT_IMPOSSIBLE;
 
     if (deductionMade && solved) {
-        dynamicUi.setStatusMessage("Deduction made; Puzzle is solved.");
+        view.setStatusMessage("Deduction made; Puzzle is solved.");
     } else if (deductionMade && !solved) {
-        dynamicUi.setStatusMessage("Deduction made.");
+        view.setStatusMessage("Deduction made.");
     } else if (!deductionMade && impossible) {
-        dynamicUi.setStatusMessage("Puzzle is impossible.");
+        view.setStatusMessage("Puzzle is impossible.");
     } else if (!deductionMade && solved) {
-        dynamicUi.setStatusMessage("Puzzle is solved.");
+        view.setStatusMessage("Puzzle is solved.");
     } else if (!deductionMade) {
-        dynamicUi.setStatusMessage("Solver cannot find a viable deduction.");
+        view.setStatusMessage("Solver cannot find a viable deduction.");
     } else {
-        dynamicUi.setStatusMessage("Inconsistent state.")
+        view.setStatusMessage("Inconsistent state.")
     }
 }
 
@@ -63,7 +62,7 @@ function doHint() {
     }
 
     /* Print hint */
-    dynamicUi.setStatusMessage("You can make a deduction in " + next.lineId + ".");
+    view.setStatusMessage("You can make a deduction in " + next.lineId + ".");
 }
 
 /**
@@ -95,15 +94,15 @@ function doNext() {
     }
 
     /* Update board state */
-    dynamicUi.updateNonogramBoardState();
+    view.refresh();
     return true;
 }
 
 function doReset() {
-    const rowHints = global.getUserInput().rowHints;
-    const colHints = global.getUserInput().colHints;
+    const rowHints = appState.getCurrentState().rowHints;
+    const colHints = appState.getCurrentState().colHints;
     global.setSolverInput(NonogramInput.withEmptyBoard(rowHints, colHints));
-    dynamicUi.updateNonogramBoardState();
+    view.refresh();
 }
 
 /**
@@ -112,63 +111,48 @@ function doReset() {
  * This is necessary because the DOM is not fully deconstructed on a page reload.
  */
 function onReload() {
-    const state = global.getUserInput();
-
     /* Write values into DOM */
-    global.inputNumRows.value = String(state.numRows);
-    global.inputNumCols.value = String(state.numCols);
-    global.inputRowHints.value = state.rowHints.map(arr => arr.join(" ")).join("\n");
-    global.inputColHints.value = state.colHints.map(arr => arr.join(" ")).join("\n");
-    global.errlabelRowHints.textContent = state.rowHintsErr;
-    global.errlabelColHints.textContent = state.colHintsErr;
+    view.refresh();
+    view.setStatusMessage("No status");
 
     /* Re-initialize storage */
     storage.init();
-
-    /* Rebuild nonogram */
-    inputParsing.updateInputState();
-    dynamicUi.rebuildNonogramContainer();
-    dynamicUi.resizeTextAreas();
-    dynamicUi.setStatusMessage("No status");
     storage.refreshStorageUI();
 }
 
-global.btnStorageSave.onclick = () => {
-    const key = global.storageInput.value;
+view.setButtonFunction(view.Button.SAVE, () => {
+    const key = storage.getTextboxValue();
     if (key) {
         storage.storeCurrentState(key);
     }
-};
+});
 
-global.btnStorageLoad.onclick = () => {
-    const key = global.storageList.value;
-    if (key) {
-        storage.applyStoredInput(key);
+view.setButtonFunction(view.Button.LOAD, () => {
+    const key = storage.getSelectedListValue();
+    if (!key) {
+        return;
     }
-}
 
-global.btnStorageDelete.onclick = () => {
-    const key = global.storageList.value;
-    if (key) {
-        storage.deleteStoredState(key);
-    }
-}
+    const state = storage.fetchStoredInput(key);
+    view.applySerializedState(state);
+    appState.updateStateFromView();
+    view.refresh();
+});
 
-global.inputRowHints.oninput = onHintChange;
-global.inputColHints.oninput = onHintChange;
+view.setInputListener(view.Input.ROW_HINTS, onHintChange);
+view.setInputListener(view.Input.COLUMN_HINTS, onHintChange);
 
-global.inputNumRows.oninput = onBoardResize;
-global.inputNumCols.oninput = onBoardResize;
+view.setInputListener(view.Input.NUM_ROWS, onBoardResize);
+view.setInputListener(view.Input.NUM_COLUMNS, onBoardResize);
 
-global.btnPrefillApply.onclick = () => {
-    inputParsing.applyPrefillToState();
-    dynamicUi.updateNonogramBoardState();
-}
+view.setButtonFunction(view.Button.APPLY_PREFILL, () => {
+    appState.applyPrefillToState();
+    view.refresh();
+});
 
-global.btnHint.onclick = doHint;
-global.btnNext.onclick = doNext;
-global.btnSolve.onclick = doSolve;
-
-global.btnReset.onclick = doReset;
+view.setButtonFunction(view.Button.HINT, doHint);
+view.setButtonFunction(view.Button.NEXT, doNext);
+view.setButtonFunction(view.Button.SOLVE, doSolve);
+view.setButtonFunction(view.Button.RESET, doReset);
 
 document.addEventListener("DOMContentLoaded", onReload);

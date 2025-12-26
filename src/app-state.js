@@ -1,10 +1,26 @@
 import * as global from "./global.js";
+import * as view from "./view.js"
+import { UserInput } from "./types/input-data.js";
 import { CellKnowledge, NonogramInput } from "./types/nonogram-types.js";
+
+const NONOGRAM_INITIAL_WIDTH = 5;
+const NONOGRAM_INITIAL_HEIGHT = 5;
+
+let userInput = new UserInput(NONOGRAM_INITIAL_HEIGHT, NONOGRAM_INITIAL_WIDTH);
+
+/**
+ * Returns the current user input state.
+ * 
+ * @returns {UserInput}
+ */
+export function getCurrentState() {
+    return userInput;
+}
 
 /**
  * Updates the global state to match the current user inputs.
  */
-export function updateInputState() {
+export function updateStateFromView() {
     updateUserInputState();
     updateSolverInputState();
 }
@@ -13,14 +29,12 @@ export function updateInputState() {
  * Updates the global user input state to match the current content of the web components. 
  */
 function updateUserInputState() {
-    const userInput = global.getUserInput();
-
     /* Update number of rows and columns */
-    userInput.numRows = Math.max(1, safeParseInt(global.inputNumRows.value));
-    userInput.numCols = Math.max(1, safeParseInt(global.inputNumCols.value));
+    userInput.numRows = Math.max(1, safeParseInt(view.getInputValue(view.Input.NUM_ROWS)));
+    userInput.numCols = Math.max(1, safeParseInt(view.getInputValue(view.Input.NUM_COLUMNS)));
 
     /* Try to parse hint texts */
-    let rowHintsParsed = tryParseHints(global.inputRowHints.value);
+    let rowHintsParsed = tryParseHints(view.getInputValue(view.Input.ROW_HINTS));
     if (!rowHintsParsed.error && rowHintsParsed.hints.length != userInput.numRows) {
         rowHintsParsed.error = "Wrong number of lines (" + rowHintsParsed.hints.length + "/" + userInput.numRows + ")";
     }
@@ -28,7 +42,7 @@ function updateUserInputState() {
     userInput.rowHints = rowHintsParsed.hints;
     userInput.rowHintsErr = rowHintsParsed.error;
 
-    let colHintsParsed = tryParseHints(global.inputColHints.value);
+    let colHintsParsed = tryParseHints(view.getInputValue(view.Input.COLUMN_HINTS));
     if (!colHintsParsed.error && colHintsParsed.hints.length != userInput.numCols) {
         colHintsParsed.error = "Wrong number of lines (" + colHintsParsed.hints.length + "/" + userInput.numCols + ")";
     }
@@ -92,8 +106,6 @@ function tryParseHints(hintsStr) {
 }
 
 function updateSolverInputState() {
-    const userInput = global.getUserInput();
-
     /* Initialize solver input if it hasn't happened yet */
     if (!global.isSolverInputInitialized()) {
         global.setSolverInput(NonogramInput.withEmptyBoard(userInput.rowHints, userInput.colHints));
@@ -132,7 +144,7 @@ class HintParsingResult {
 }
 
 export function applyPrefillToState() {
-    const prefill = global.inputPrefill.value;
+    const prefill = view.getInputValue(view.Input.PREFILL);
 
     const lines = prefill.split("\n");
     for (let row = 0; row < lines.length; row++) {
