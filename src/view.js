@@ -1,7 +1,9 @@
 import * as appState from "./app-state.js";
-import * as global from "./global.js";
 import { SerializedState } from "./storage.js";
 import { CellKnowledge } from "./types/nonogram-types.js";
+
+const NONOGRAM_CELL_SIZE = "20px";
+const NONOGRAM_CELL_SIZE_CLICKED = "16px";
 
 const HINT_AREA_MIN_LINES = 2;
 const HINT_AREA_MAX_LINES = 15;
@@ -214,11 +216,7 @@ function refreshNonogramHintLabels() {
 
 function refreshNonogramBoardState() {
     /* Nothing to do if there is no solver input yet */
-    if (!global.isSolverInputInitialized()) {
-        return;
-    }
-
-    const solverState = global.getSolverInput();
+    const solverState = appState.getCurrentState().nonogramState;
 
     for (let row = 0; row < solverState.height; row++) {
         for (let col = 0; col < solverState.width; col++) {
@@ -227,7 +225,7 @@ function refreshNonogramBoardState() {
                 continue;
             }
 
-            const knowledge = solverState.state.getCell(col, row);            
+            const knowledge = solverState.getCell(col, row);            
             cell.style.backgroundColor = getCellColor(col, row);
 
             if (knowledge == CellKnowledge.DEFINITELY_WHITE) {
@@ -262,7 +260,7 @@ export function applySerializedState(state) {
  * @returns {string} 
  */
 function getCellColor(col, row) {
-    const state = global.getSolverInput().state.getCell(col, row);
+    const state = appState.getCurrentState().nonogramState.getCell(col, row);
 
     switch (state) {
         case CellKnowledge.DEFINITELY_BLACK: return "#000000FF";
@@ -279,7 +277,7 @@ function getCellColor(col, row) {
  * @returns {string} 
  */
 function getCellColorHover(col, row) {
-    const state = global.getSolverInput().state.getCell(col, row);
+    const state = appState.getCurrentState().nonogramState.getCell(col, row);
 
     switch (state) {
         case CellKnowledge.DEFINITELY_BLACK: return "#333333FF";
@@ -296,8 +294,8 @@ function createNonogramCell(col, row) {
     let ret = document.createElement("div");
 
     /* Basic style stuff */
-    ret.style.width = global.NONOGRAM_CELL_SIZE;
-    ret.style.height = global.NONOGRAM_CELL_SIZE;
+    ret.style.width = NONOGRAM_CELL_SIZE;
+    ret.style.height = NONOGRAM_CELL_SIZE;
 
     ret.style.gridColumn = String(col + 2);
     ret.style.gridRow = String(row + 2);
@@ -315,24 +313,24 @@ function createNonogramCell(col, row) {
 
     ret.onmouseleave = _ => {
         ret.style.backgroundColor = getCellColor(col, row);
-        ret.style.width = global.NONOGRAM_CELL_SIZE;
-        ret.style.height = global.NONOGRAM_CELL_SIZE;
+        ret.style.width = NONOGRAM_CELL_SIZE;
+        ret.style.height = NONOGRAM_CELL_SIZE;
     }
 
     ret.onmousedown = _ => {
-        ret.style.width = global.NONOGRAM_CELL_SIZE_CLICKED;
-        ret.style.height = global.NONOGRAM_CELL_SIZE_CLICKED;
+        ret.style.width = NONOGRAM_CELL_SIZE_CLICKED;
+        ret.style.height = NONOGRAM_CELL_SIZE_CLICKED;
     }
 
     ret.onmouseup = ev => {
-        ret.style.width = global.NONOGRAM_CELL_SIZE;
-        ret.style.height = global.NONOGRAM_CELL_SIZE;
+        ret.style.width = NONOGRAM_CELL_SIZE;
+        ret.style.height = NONOGRAM_CELL_SIZE;
 
         /* Update solver state */
-        const curKnowledge = global.getSolverInput().state.getCell(col, row);
+        const curKnowledge = appState.getCurrentState().nonogramState.getCell(col, row);
         const nextKnowledge = nextCellKnowledge(curKnowledge, ev.button);
 
-        global.getSolverInput().state.updateCell(col, row, nextKnowledge);
+        appState.getCurrentState().nonogramState.updateCell(col, row, nextKnowledge);
         refreshNonogramBoardState();
     }
 
@@ -376,7 +374,7 @@ function nextCellKnowledge(current, button) {
 function createRowHintSpan(row) {
     let ret = document.createElement("span");
 
-    ret.style.height = global.NONOGRAM_CELL_SIZE;
+    ret.style.height = NONOGRAM_CELL_SIZE;
     ret.style.gridColumn = "1";
     ret.style.gridRow = String(row + 2);
 
@@ -393,7 +391,7 @@ function createRowHintSpan(row) {
 function createColHintSpan(col) {
     let ret = document.createElement("span");
 
-    ret.style.width = global.NONOGRAM_CELL_SIZE;
+    ret.style.width = NONOGRAM_CELL_SIZE;
     ret.style.gridColumn = String(col + 2);
     ret.style.gridRow = String(1);
 

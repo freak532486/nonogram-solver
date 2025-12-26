@@ -1,9 +1,8 @@
-import * as global from "./global.js"
-import * as appState from "./app-state.js"
-import * as view from "./view.js"
-import * as solver from "./solver.js"
-import * as storage from "./storage.js"
+import * as appState from "./app-state.js";
+import * as solver from "./solver.js";
+import * as storage from "./storage.js";
 import { DeductionFlags, LineType, NonogramInput } from "./types/nonogram-types.js";
+import * as view from "./view.js";
 
 const onHintChange = () => {
     appState.updateStateFromView();
@@ -52,7 +51,7 @@ function updateStatus(statusFlags) {
  * Performs a deduction, displays it as a hint.
  */
 function doHint() {
-    const solverInput = global.getSolverInput();
+    const solverInput = buildSolverInput();
     const next = solver.deduceNext(solverInput);
 
     updateStatus(next.statusFlags);
@@ -71,7 +70,7 @@ function doHint() {
  * @return {boolean}
  */
 function doNext() {
-    const solverInput = global.getSolverInput();
+    const solverInput = buildSolverInput();
     const next = solver.deduceNext(solverInput);
 
     updateStatus(next.statusFlags);
@@ -99,10 +98,16 @@ function doNext() {
 }
 
 function doReset() {
-    const rowHints = appState.getCurrentState().rowHints;
-    const colHints = appState.getCurrentState().colHints;
-    global.setSolverInput(NonogramInput.withEmptyBoard(rowHints, colHints));
+    appState.resetBoardState();
     view.refresh();
+}
+
+function buildSolverInput() {
+    return new NonogramInput(
+        appState.getCurrentState().rowHints,
+        appState.getCurrentState().colHints,
+        appState.getCurrentState().nonogramState
+    );
 }
 
 /**

@@ -1,7 +1,9 @@
+import { NonogramState } from "./nonogram-types.js";
+
 /**
  * Contains parsed data of all input fields (size, hints...)
  */
-export class UserInput {
+export class AppState {
 
     /**
      * @type {number}
@@ -12,6 +14,12 @@ export class UserInput {
      * @type {number}
      */
     #numCols;
+
+    /**
+     * Raw row hints text.
+     * @type {string}
+     */
+    #rawRowHints = "";
 
     /**
      * List of row hints. Its length is always equal to 'numRows'.
@@ -26,6 +34,12 @@ export class UserInput {
     #rowHintsErr = "";
 
     /**
+     * Raw column hints text.
+     * @type {string}
+     */
+    #rawColHints = "";
+
+    /**
      * List of column hints. Its length is always equal to 'numCols'.
      * @type {Array<Array<number>>}
      */
@@ -38,6 +52,13 @@ export class UserInput {
     #colHintsErr = "";
 
     /**
+     * Current board state.
+     * 
+     * @type {NonogramState}
+     */
+    #nonogramState;
+
+    /**
      * Creates the initial user input state.
      * 
      * @param {number} numRows 
@@ -46,6 +67,7 @@ export class UserInput {
     constructor(numRows, numColums) {
         this.#numRows = numRows;
         this.#numCols = numColums;
+        this.#nonogramState = new NonogramState(numColums, numRows);
         this.#sanitizeHints();
     }
 
@@ -75,6 +97,10 @@ export class UserInput {
         return this.#numCols;
     }
 
+    get rawRowHints() {
+        return this.#rawRowHints;
+    }
+
     get rowHints() {
         return this.#rowHints;
     }
@@ -83,12 +109,20 @@ export class UserInput {
         return this.#rowHintsErr;
     }
 
+    get rawColHints() {
+        return this.#rawColHints;
+    }
+
     get colHints() {
         return this.#colHints;
     }
 
     get colHintsErr() {
         return this.#colHintsErr;
+    }
+
+    get nonogramState() {
+        return this.#nonogramState;
     }
 
     set numRows(numRows) {
@@ -101,6 +135,10 @@ export class UserInput {
         this.#sanitizeHints();
     }
 
+    set rawRowHints(rawRowHints) {
+        this.#rawRowHints = rawRowHints;
+    }
+
     set rowHints(rowHints) {
         this.#rowHints = rowHints;
         this.#sanitizeHints();
@@ -110,6 +148,10 @@ export class UserInput {
         this.#rowHintsErr = rowHintsErr;
     }
 
+    set rawColHints(rawColHints) {
+        this.#rawColHints = rawColHints;
+    }
+
     set colHints(colHints) {
         this.#colHints = colHints;
         this.#sanitizeHints();
@@ -117,6 +159,10 @@ export class UserInput {
 
     set colHintsErr(colHintsErr) {
         this.#colHintsErr = colHintsErr;
+    }
+
+    set nonogramState(state) {
+        this.#nonogramState = state;
     }
 
 

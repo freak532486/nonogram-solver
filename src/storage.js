@@ -1,7 +1,6 @@
-import * as appState from "./app-state.js"
-import * as global from "./global.js"
-import * as view from "./view.js"
+import * as appState from "./app-state.js";
 import { CellKnowledge } from "./types/nonogram-types.js";
+import * as view from "./view.js";
 
 const storageList = /** @type {!HTMLSelectElement} */ (document.getElementById("storage-list"));
 const storageInput = /** @type {!HTMLInputElement} */ (document.getElementById("storage-input"));
@@ -56,9 +55,10 @@ export function storeCurrentState(key) {
     toStore.state = "";
 
     /* Build state from nonogram state */
-    for (let row = 0; row < global.getSolverInput().height; row++) {
-        for (let col = 0; col < global.getSolverInput().width; col++) {
-            const knowledge = global.getSolverInput().state.getCell(col, row);
+    const nonogramState = appState.getCurrentState().nonogramState;
+    for (let row = 0; row < nonogramState.height; row++) {
+        for (let col = 0; col < nonogramState.width; col++) {
+            const knowledge = nonogramState.getCell(col, row);
 
             switch (knowledge) {
                 case CellKnowledge.UNKNOWN:

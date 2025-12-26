@@ -1,54 +1,54 @@
-import * as global from "./global.js";
-import * as view from "./view.js"
-import { UserInput } from "./types/input-data.js";
-import { CellKnowledge, NonogramInput } from "./types/nonogram-types.js";
+import { AppState } from "./types/input-data.js";
+import { CellKnowledge, NonogramState } from "./types/nonogram-types.js";
+import * as view from "./view.js";
 
 const NONOGRAM_INITIAL_WIDTH = 5;
 const NONOGRAM_INITIAL_HEIGHT = 5;
 
-let userInput = new UserInput(NONOGRAM_INITIAL_HEIGHT, NONOGRAM_INITIAL_WIDTH);
+let appState = new AppState(NONOGRAM_INITIAL_HEIGHT, NONOGRAM_INITIAL_WIDTH);
 
 /**
  * Returns the current user input state.
  * 
- * @returns {UserInput}
+ * @returns {AppState}
  */
 export function getCurrentState() {
-    return userInput;
+    return appState;
 }
 
 /**
  * Updates the global state to match the current user inputs.
  */
 export function updateStateFromView() {
-    updateUserInputState();
-    updateSolverInputState();
-}
-
-/**
- * Updates the global user input state to match the current content of the web components. 
- */
-function updateUserInputState() {
     /* Update number of rows and columns */
-    userInput.numRows = Math.max(1, safeParseInt(view.getInputValue(view.Input.NUM_ROWS)));
-    userInput.numCols = Math.max(1, safeParseInt(view.getInputValue(view.Input.NUM_COLUMNS)));
+    appState.numRows = Math.max(1, safeParseInt(view.getInputValue(view.Input.NUM_ROWS)));
+    appState.numCols = Math.max(1, safeParseInt(view.getInputValue(view.Input.NUM_COLUMNS)));
+    appState.rawRowHints = view.getInputValue(view.Input.ROW_HINTS);
+    appState.rawColHints = view.getInputValue(view.Input.COLUMN_HINTS);
 
     /* Try to parse hint texts */
-    let rowHintsParsed = tryParseHints(view.getInputValue(view.Input.ROW_HINTS));
-    if (!rowHintsParsed.error && rowHintsParsed.hints.length != userInput.numRows) {
-        rowHintsParsed.error = "Wrong number of lines (" + rowHintsParsed.hints.length + "/" + userInput.numRows + ")";
+    let rowHintsParsed = tryParseHints(appState.rawRowHints);
+    if (!rowHintsParsed.error && rowHintsParsed.hints.length != appState.numRows) {
+        rowHintsParsed.error = "Wrong number of lines (" + rowHintsParsed.hints.length + "/" + appState.numRows + ")";
     }
 
-    userInput.rowHints = rowHintsParsed.hints;
-    userInput.rowHintsErr = rowHintsParsed.error;
+    appState.rowHints = rowHintsParsed.hints;
+    appState.rowHintsErr = rowHintsParsed.error;
 
-    let colHintsParsed = tryParseHints(view.getInputValue(view.Input.COLUMN_HINTS));
-    if (!colHintsParsed.error && colHintsParsed.hints.length != userInput.numCols) {
-        colHintsParsed.error = "Wrong number of lines (" + colHintsParsed.hints.length + "/" + userInput.numCols + ")";
+    let colHintsParsed = tryParseHints(appState.rawColHints);
+    if (!colHintsParsed.error && colHintsParsed.hints.length != appState.numCols) {
+        colHintsParsed.error = "Wrong number of lines (" + colHintsParsed.hints.length + "/" + appState.numCols + ")";
     }
 
-    userInput.colHints = colHintsParsed.hints;
-    userInput.colHintsErr = colHintsParsed.error;
+    appState.colHints = colHintsParsed.hints;
+    appState.colHintsErr = colHintsParsed.error;
+
+    /* Regenerate board if necessary */
+    if (appState.nonogramState.width == appState.numCols && appState.nonogramState.height == appState.numRows) {
+        return;
+    }
+
+    appState.nonogramState = new NonogramState(appState.numCols, appState.numRows);
 }
 
 /**
@@ -105,30 +105,6 @@ function tryParseHints(hintsStr) {
     return ret;
 }
 
-function updateSolverInputState() {
-    /* Initialize solver input if it hasn't happened yet */
-    if (!global.isSolverInputInitialized()) {
-        global.setSolverInput(NonogramInput.withEmptyBoard(userInput.rowHints, userInput.colHints));
-        return;
-    }
-
-    /* On size change: Recreate entire solver input */
-    const widthChanged = global.getSolverInput().width != userInput.numCols;
-    const heightChanged = global.getSolverInput().height != userInput.numRows;
-
-    if (widthChanged || heightChanged) {
-        global.setSolverInput(NonogramInput.withEmptyBoard(userInput.rowHints, userInput.colHints));
-        return;
-    }
-
-    /* On hint-only change: Simply update hints. */
-    global.setSolverInput(NonogramInput.withExistingState(
-        userInput.rowHints, 
-        userInput.colHints, 
-        global.getSolverInput().state
-    ));
-}
-
 class HintParsingResult {
     /**
      * Will be empty if the hint text could not be parsed.
@@ -151,31 +127,41 @@ export function applyPrefillToState() {
         let col = 0;
 
         /* Ignore excess rows */
-        if (row >= global.getSolverInput().height) {
+        if (row >= appState.nonogramState.height) {
             break;
         }
 
         for (const symbol of lines[row]) {
             /* Ignore excess columns */
-            if (col >= global.getSolverInput().width) {
+            if (col >= appState.nonogramState.width) {
                 break;
             }
 
             /* Apply symbols with meaning, ignore the rest */
             if (symbol == '#') {
-                global.getSolverInput().state.updateCell(col, row, CellKnowledge.DEFINITELY_BLACK);
+                appState.nonogramState.updateCell(col, row, CellKnowledge.DEFINITELY_BLACK);
                 col++;
             }
 
             if (symbol == '.') {
-                global.getSolverInput().state.updateCell(col, row, CellKnowledge.UNKNOWN);
+                appState.nonogramState.updateCell(col, row, CellKnowledge.UNKNOWN);
                 col++;
             }
 
             if (symbol == 'X' || symbol == 'x') {
-                global.getSolverInput().state.updateCell(col, row, CellKnowledge.DEFINITELY_WHITE);
+                appState.nonogramState.updateCell(col, row, CellKnowledge.DEFINITELY_WHITE);
                 col++;
             }
+        }
+    }
+}
+
+export function resetBoardState() {
+    const state = appState.nonogramState;
+
+    for (let row = 0; row < state.height; row++) {
+        for (let col = 0; col < state.width; col++) {
+            state.updateCell(col, row, CellKnowledge.UNKNOWN);
         }
     }
 }
