@@ -1,0 +1,48 @@
+#header {
+    --header-gradient-color: color-mix(in srgb, var(--bg1) 90%, black 10%);
+    --header-size: 50px;
+
+    height: var(--header-size);
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    user-select: none;
+
+    background: linear-gradient(to bottom, var(--bg1), var(--bg1) 0%, var(--header-gradient-color) 100%);
+    box-shadow: 0px 0px 10px #00000080;
+    z-index: 5;
+}
+
+#header .logo {
+    padding: 10px;
+}
+
+#header .menu {
+    --header-menu-button-color: rgb(168, 168, 168);
+
+    position: relative;
+    appearance: none;
+    border: none;
+    border-radius: 5px;
+    margin: 5px;
+    margin-right: 10px;
+    aspect-ratio: 1;
+    background-color: transparent;
+}
+
+#header .menu::before {
+    content: "";
+    position: absolute;
+    inset: 0px;
+    z-index: 1;
+
+    background-color: var(--header-menu-button-color);
+    mask: url("/images/menu.png") no-repeat center / 24px;
+    -webkit-mask: url("/images/menu.png") no-repeat center / 24px;
+}
+
+#header .menu:active {
+    background-color: rgba(0, 0, 0, 0.05);
+}

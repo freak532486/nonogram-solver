@@ -19,8 +19,8 @@ export class PlayfieldMenu {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        attachCss("/src/playfield/menu/playfield-menu.css");
-        this.#view = await loadHtml("/src/playfield/menu/playfield-menu.html");
+        attachCss(new URL("./playfield-menu.css", import.meta.url));
+        this.#view = await loadHtml(new URL("./playfield-menu.html", import.meta.url));
         this.hide();
         parent.appendChild(this.#view);
     }

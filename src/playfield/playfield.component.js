@@ -51,18 +51,15 @@ export class PlayfieldComponent {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        attachCss("/src/playfield/playfield.css");
-        this.#view = await loadHtml("/src/playfield/playfield.html");
+        /* Create view */
+        attachCss(new URL("./playfield.css", import.meta.url));
+        this.#view = await loadHtml(new URL("./playfield.html", import.meta.url));
         parent.appendChild(this.#view);
 
         /* Create control pad */
         const footer = /** @type {HTMLElement} */ (this.view.querySelector("#footer"));
         const controlPad = new ControlPad();
         await controlPad.init(footer);
-
-        controlPad.view.style.width = "fit-content";
-        controlPad.view.style.gridRow = "1";
-        controlPad.view.style.paddingBottom = "0px";
 
         controlPad.setButtonFunction(ControlPadButton.LEFT, () => this.#moveSelectionAndSet(-1, 0));
         controlPad.setButtonFunction(ControlPadButton.UP, () => this.#moveSelectionAndSet(0, -1));
@@ -133,7 +130,6 @@ export class PlayfieldComponent {
         /* Create zoomable window */
         const nonogramRoot = /** @type {HTMLElement} */ (this.#view.querySelector("#nonogram-root"));
         this.#zoomWindow = new ZoomWindow(this.#nonogramBoard.view, nonogramRoot);
-        this.#zoomWindow.view.style.backgroundColor = "var(--bg1)";
 
         /* Create menu */
         this.#menu = new PlayfieldMenu();
