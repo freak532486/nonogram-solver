@@ -1,3 +1,4 @@
+import * as storage from "../storage.js"
 import { CellKnowledge, DeductionStatus, NonogramState } from "../common/nonogram-types.js";
 import { Point } from "../common/point.js";
 import { attachCss, loadHtml } from "../loader.js";
@@ -9,6 +10,9 @@ import { BoardComponentFullState, NonogramBoardComponent } from "./nonogram-boar
 import { ZoomWindow } from "./zoom-window/zoom-window.component.js";
 
 export class PlayfieldComponent {
+
+    /** @type {number} */
+    #nonogramId;
 
     /** @type {HTMLElement | null} */
     #view = null;
@@ -34,13 +38,14 @@ export class PlayfieldComponent {
     /**
      * Constructs a playfield for the given nonogram. Call init() before using!
      * 
+     * @param {number} nonogramId
      * @param {Array<Array<number>>} rowHints 
      * @param {Array<Array<number>>} colHints 
      * @param {Menu} menu;
      */
-    constructor (rowHints, colHints, menu) {
+    constructor (nonogramId, rowHints, colHints, menu) {
+        this.#nonogramId = nonogramId;
         this.#nonogramBoard = new NonogramBoardComponent(rowHints, colHints);
-        this.#stateHistory.push(this.#nonogramBoard.getFullState());
         this.#menu = menu;
 
         /* Add hint button */
@@ -77,7 +82,8 @@ export class PlayfieldComponent {
             }
 
             state.applyDeduction(deduction);
-            this.#supplyNextState(new BoardComponentFullState(state.getCellStates()));
+            this.#nonogramBoard.applyState(new BoardComponentFullState(state.getCellStates()));
+            this.#updateHistory();
         };
         menu.appendElement(nextButton);
 
@@ -94,6 +100,7 @@ export class PlayfieldComponent {
             ));
 
             this.#nonogramBoard.applyState(emptyState);
+            storage.storeState(nonogramId, emptyState);
             this.#stateHistory = [emptyState];
             this.controlPad.getButton(ControlPadButton.UNDO).style.visibility = "hidden";
             this.controlPad.getButton(ControlPadButton.REDO).style.visibility = "hidden";
@@ -110,6 +117,15 @@ export class PlayfieldComponent {
             this.#onExit();
         }
         menu.appendElement(exitButton);
+
+        /* Apply stored state if exists */
+        const storedState = storage.retrieveStoredState(this.#nonogramId);
+        if (storedState) {
+            this.#nonogramBoard.applyState(storedState);
+        }
+
+        /* Prepare history */
+        this.#stateHistory.push(this.#nonogramBoard.getFullState());
     }
 
     /** Should be called after removing the playfield from the screen */
@@ -352,6 +368,8 @@ export class PlayfieldComponent {
             return; // Nothing to do
         }
 
+        storage.storeState(this.#nonogramId, curState);
+
         const undoButton = this.controlPad.getButton(ControlPadButton.UNDO);
         const redoButton = this.controlPad.getButton(ControlPadButton.REDO);
 
@@ -363,16 +381,6 @@ export class PlayfieldComponent {
         this.#activeStateIdx += 1;
         undoButton.style.visibility = "visible";
         redoButton.style.visibility = "hidden";
-    }
-
-    /**
-     * Adds a new state to the history.
-     * 
-     * @param {BoardComponentFullState} state 
-     */
-    #supplyNextState(state) {
-        this.#nonogramBoard.applyState(state);
-        this.#updateHistory();
     }
 
     get view() {

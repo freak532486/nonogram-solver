@@ -1,23 +1,13 @@
 export class SerializedNonogram {
-    /** @type {String} */
-    name;
-
-    /** @type {String} */
-    difficulty;
-
-    /** @type {Array<Array<number>>} */
-    rowHints;
-
-    /** @type {Array<Array<number>>} */
-    colHints;
-
     /**
+     * @param {number} id
      * @param {String} name 
      * @param {String} difficulty 
      * @param {Array<Array<Number>>} rowHints 
      * @param {Array<Array<Number>>} colHints 
      */
-    constructor (name, difficulty, rowHints, colHints) {
+    constructor (id, name, difficulty, rowHints, colHints) {
+        this.id = id;
         this.name = name;
         this.difficulty = difficulty;
         this.rowHints = rowHints;

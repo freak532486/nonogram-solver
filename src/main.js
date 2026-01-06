@@ -31,11 +31,12 @@ await catalog.init(mainDiv);
 catalog.onNonogramSelected = async nonogram => {
     catalog.view.remove();
 
-    const playfield = new PlayfieldComponent(nonogram.rowHints, nonogram.colHints, menu);
+    const playfield = new PlayfieldComponent(nonogram.id, nonogram.rowHints, nonogram.colHints, menu);
     await playfield.init(mainDiv);
-    playfield.onExit = () => {
+    playfield.onExit = async () => {
         playfield.view.remove();
         playfield.destroy();
+        await catalog.refresh();
         mainDiv.appendChild(catalog.view);
     }
 };
