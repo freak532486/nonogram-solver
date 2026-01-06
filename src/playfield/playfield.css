@@ -1,96 +1,36 @@
 #playfield {
-    --header-size: 20px;
-    --border-size: 5px;
-    --footer-size: 190px;
-
-    position: relative;
-    background-color: var(--bg2);
+    display: grid;
+    grid-template-rows: 1fr auto;
     height: 100%;
 }
 
-#header {
-    position: absolute;
-    inset: var(--border-size);
-    top: 0px;
-    height: var(--header-size);
-    padding: 2px;
+#playfield > * {
+    min-width: 0;
+    min-height: 0;
+}
 
-    display: flex;
-    justify-content: center;
-    
-    font-family: sans-serif;
-    font-size: 11pt;
-    color: var(--fg1);
+#nonogram-root {
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+
+    background-color: var(--bg2);
 }
 
 #footer {
-    position: absolute;
-    bottom: 0px;
-    left: 2px;
-    right: 2px;
-    height: var(--footer-size);
+    grid-row: 2;
+    height: 140px;
 
-    display: grid;
-    grid-template-rows: 1fr auto;
+    display: flex;
+    flex-direction: column;
     gap: 5px;
-    justify-items: center;
+    justify-content: center;
+    align-items: center;
 
     padding-top: 5px;
     box-sizing: border-box;
 
-    background-color: transparent;
+    background-color: var(--bg1);
+    border-top: 1px solid var(--border-color);
     overflow: hidden;
-}
-
-#footer-buttons {
-    grid-row: 2;
-
-    display: grid;
-    gap: 5px;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr;
-    justify-items: center;
-
-    width: 100%;
-    height: 50px;
-}
-
-#footer-buttons input[type="button"] {
-    border: none;
-    border-radius: 10px;
-    background-color: transparent;
-    background-size: 24px;
-    
-    width: 100%;
-
-    font-family: system-ui;
-    font-weight: bold;
-
-    align-content: start;
-    justify-content: center;
-}
-
-#footer-buttons input[type="button"]:active {
-    background-color: #FFFFFF10;
-}
-
-#button-undo {
-    background: url("/images/undo.png") no-repeat center center;
-}
-
-#button-menu {
-    background: url("/images/menu.png") no-repeat center center;
-}
-
-#button-redo {
-    background: url("/images/redo.png") no-repeat center center;
-}
-
-#nonogram-root {
-    position: absolute;
-    inset: var(--border-size);
-    bottom: var(--footer-size);
-    top: var(--header-size);
-
-    border: 1px solid #FFFFFF40;
 }

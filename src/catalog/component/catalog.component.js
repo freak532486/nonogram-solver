@@ -13,8 +13,8 @@ export class Catalog {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        attachCss("/src/catalog/component/catalog.css");
-        this.#view = await loadHtml("/src/catalog/component/catalog.html");
+        attachCss(new URL("./catalog.css", import.meta.url));
+        this.#view = await loadHtml(new URL("./catalog.html", import.meta.url));
         const entriesRoot = /** @type {HTMLElement} */ (this.#view.querySelector(".entries"));
 
         const loaded = await loadNonograms();
@@ -58,7 +58,7 @@ export class Catalog {
      * @returns 
      */
     async #createEntry(name, size, difficulty) {
-        const div = await loadHtml("/src/catalog/component/catalog-entry.html");
+        const div = await loadHtml(new URL("./catalog-entry.html", import.meta.url));
         /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .name")).textContent = name;
         /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .size")).textContent = "Size: " + size;
         /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .difficulty")).textContent = "Difficulty: " + difficulty;

@@ -8,7 +8,9 @@ export const ControlPadButton = Object.freeze({
     DOWN: 3,
     WHITE: 4,
     BLACK: 5,
-    ERASE: 6
+    ERASE: 6,
+    UNDO: 7,
+    REDO: 8
 });
 
 export class ControlPad {
@@ -20,10 +22,30 @@ export class ControlPad {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        attachCss("/src/playfield/control-pad/control-pad.css");
-        this.#view = await loadHtml("/src/playfield/control-pad/control-pad.html");
-
+        attachCss(new URL("./control-pad.css", import.meta.url));
+        this.#view = await loadHtml(new URL("./control-pad.html", import.meta.url));
         parent.appendChild(this.#view);
+
+        /* Checking behaviour for black and white button */
+        const btnBlack = this.getButton(ControlPadButton.BLACK);
+        this.setBlackChecked(false);
+        btnBlack.addEventListener("click", ev => {
+            if (ev.button != 0) {
+                return;
+            }
+
+            this.setBlackChecked(this.isBlackChecked() ? false : true);
+        })
+        
+        const btnWhite = this.getButton(ControlPadButton.WHITE);
+        this.setWhiteChecked(false);
+        btnWhite.addEventListener("click", ev => {
+            if (ev.button != 0) {
+                return;
+            }
+
+            this.setWhiteChecked(this.isWhiteChecked() ? false : true);
+        })
     }
 
     get view() {
@@ -65,6 +87,8 @@ export class ControlPad {
             case ControlPadButton.BLACK: buttonId = "control-black"; break;
             case ControlPadButton.WHITE: buttonId = "control-white"; break;
             case ControlPadButton.ERASE: buttonId = "control-erase"; break;
+            case ControlPadButton.UNDO: buttonId = "control-undo"; break;
+            case ControlPadButton.REDO: buttonId = "control-redo"; break;
         }
 
         if (!buttonId) {
@@ -76,11 +100,31 @@ export class ControlPad {
 
     isWhiteChecked() {
         const btnWhite = /** @type {HTMLInputElement} */ (this.view.querySelector("#control-white"));
-        return btnWhite.checked;
+        return btnWhite.getAttribute("data-checked") == "true";
+    }
+
+    /** @param {boolean} checked  */
+    setWhiteChecked(checked) {
+        const btnWhite = /** @type {HTMLInputElement} */ (this.view.querySelector("#control-white"));
+        btnWhite.setAttribute("data-checked", checked ? "true" : "false");
+
+        if (checked && this.isBlackChecked()) {
+            this.setBlackChecked(false);
+        }
     }
 
     isBlackChecked() {
         const btnBlack = /** @type {HTMLInputElement} */ (this.view.querySelector("#control-black"));
-        return btnBlack.checked;
+        return btnBlack.getAttribute("data-checked") == "true";
+    }
+
+    /** @param {boolean} checked  */
+    setBlackChecked(checked) {
+        const btnBlack = /** @type {HTMLInputElement} */ (this.view.querySelector("#control-black"));
+        btnBlack.setAttribute("data-checked", checked ? "true" : "false");
+
+        if (checked && this.isWhiteChecked()) {
+            this.setWhiteChecked(false);
+        }
     }
 }

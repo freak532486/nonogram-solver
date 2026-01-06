@@ -1,11 +1,11 @@
 /**
  * Loads a HTML file. Returns the first element inside it.
  * 
- * @param {String} path 
+ * @param {URL} url 
  * @returns {Promise<HTMLElement>}
  */
-export async function loadHtml(path) {
-    const res = await fetch(path);
+export async function loadHtml(url) {
+    const res = await fetch(url);
 
     const ret = document.createElement("div");
     ret.innerHTML = await res.text();
@@ -15,24 +15,24 @@ export async function loadHtml(path) {
 /**
  * Attaches a CSS file to the document.
  * 
- * @param {string} path 
+ * @param {URL} url 
  */
-export function attachCss(path) {
-    if (document.querySelector(`link[href="${path}"]`)) {
+export function attachCss(url) {
+    if (document.querySelector(`link[href="${url}"]`)) {
         return;
     }
 
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = path;
+    link.href = url.href;
     document.head.appendChild(link);
 }
 
 /**
  * Detaches the given CSS file from the document.
- * @param {String} path 
+ * @param {URL} url 
  */
-export function detachCss(path) {
-    const link = document.querySelector(`link[href="${path}"]`);
+export function detachCss(url) {
+    const link = document.querySelector(`link[href="${url.href}"]`);
     link?.remove();
 }

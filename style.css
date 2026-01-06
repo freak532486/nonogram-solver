@@ -1,17 +1,17 @@
 * {
-    --bg1: #161525;
-    --bg2: rgb(27, 27, 53);
-    --fg1: rgb(245, 245, 245);
-    --fg2: rgb(189, 189, 189);
-    --border-color: #ffffff30;
+    --bg1: rgb(255, 255, 255);
+    --bg2: rgb(247, 247, 247);
+    --fg1: rgb(88, 120, 142);
+    --fg2: rgb(209, 97, 21);
+    --border-color: rgb(162, 162, 162);
     --border-color-dark: #00000080;
+    --header-gradient-color: color-mix(in srgb, var(--bg1) 90%, black 10%);
+
+    --header-size: 50px;
 }
 
 body {
     margin: 0px;
-    width: 100vw;
-    height: 100vh;
-
     background-color: black;
 }
 
@@ -22,9 +22,8 @@ body {
 
 #content-column {
     position: relative;
-
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto 1fr;
 
     max-width: 900px;
     width: 100%;

@@ -1,34 +1,30 @@
 #control-pad {
     display: grid;
-
     grid-template-rows: repeat(2, 1fr);
     grid-template-columns: repeat(5, 1fr);
     gap: 5px;
+
+    width: fit-content;
+    height: 100%;
+    padding-bottom: 0px;
 
     border-radius: 10px;
     background-color: transparent;
 }
 
-#control-pad input {
+#control-pad .button {
+    position: relative;
     display: block;
-    align-self: stretch;
-    justify-self: stretch;
     appearance: none;
     background-color: transparent;
-    color: white;
     margin: 0;
 
-    border-top: 1px solid var(--border-color);
-    border-left: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color-dark);
-    border-right: 1px solid var(--border-color-dark);
+    border: none;
     border-radius: 5px;
 
+    aspect-ratio: 1;
     width: 100%;
     height: 100%;
-    aspect-ratio: 1;
-
-    min-width: 60px;
     box-sizing: border-box;
 
     background-position: center center;
@@ -36,68 +32,103 @@
     background-repeat: no-repeat;
 }
 
-#control-pad input:active {
-    border-top: 1px solid var(--border-color-dark);
-    border-left: 1px solid var(--border-color-dark);
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    /* background-color: #FFFFFF10; */
+#control-pad .button:active {
+    background-color: #00000010;
 }
 
-#control-pad input:checked {
-    border-top: 1px solid var(--border-color-dark);
-    border-left: 1px solid var(--border-color-dark);
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    /* background-color: #FFFFFF10; */
+#control-pad .checkbox[data-checked="true"] {
+    background-color: #00000010;
+}
+
+#control-pad .button::before {
+    content: "";
+    position: absolute;
+    inset: 0px;
+    z-index: 1;
+
+    background-color: var(--fg1);
+    mask-position: center center;
+    mask-size: 24px;
+    mask-repeat: no-repeat;
 }
 
 #control-pad #control-left {
     grid-row: 2;
     grid-column: 2;
+}
 
-    background-image: url("/images/left.png");
+#control-pad #control-left::before {
+    mask-image: url("/images/left.png");
 }
 
 #control-pad #control-right {
     grid-row: 2;
     grid-column: 4;
+}
 
-    background-image: url("/images/right.png");
+#control-pad #control-right::before {
+    mask-image: url("/images/right.png");
 }
 
 #control-pad #control-up {
     grid-row: 1;
     grid-column: 3;
+}
 
-    
-    background-image: url("/images/up.png");
+#control-pad #control-up::before {
+    mask-image: url("/images/up.png");
 }
 
 #control-pad #control-down {
     grid-row: 2;
     grid-column: 3;
+}
 
-    background-image: url("/images/down.png");
+#control-pad #control-down::before {
+    mask-image: url("/images/down.png");
 }
 
 #control-pad #control-black {
     grid-row: 1;
     grid-column: 4;
+}
 
-    background-image: url("/images/square.png");
+#control-pad #control-black::before {
+    mask-image: url("/images/square.png");
 }
 
 #control-pad #control-white {
     grid-row: 1;
     grid-column: 2;
+}
 
-    background-image: url("/images/cross.png");
+#control-pad #control-white::before {
+    mask-image: url("/images/cross.png");
 }
 
 #control-pad #control-erase {
     grid-row: 1;
     grid-column: 1;
+}
 
-    background-image: url("/images/eraser.png");
+#control-pad #control-erase::before {
+    mask-image: url("/images/eraser.png");
+}
+
+#control-pad #control-undo {
+    grid-row: 2;
+    grid-column: 1;
+}
+
+#control-pad #control-undo::before {
+    mask-image: url("/images/undo.png");
+}
+
+#control-pad #control-redo {
+    grid-row: 2;
+    grid-column: 5;
+}
+
+#control-pad #control-redo::before {
+    mask-image: url("/images/redo.png");
 }
