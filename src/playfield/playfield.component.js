@@ -64,7 +64,7 @@ export class PlayfieldComponent {
         /* Add Solve Line button */
         const nextButton = document.createElement("button");
         nextButton.classList.add("entry", "playfield", "border-top");
-        nextButton.textContent = "Solve one line";
+        nextButton.textContent = "Deduce next";
         nextButton.onclick = () => {
             menu.toggle();
             
@@ -198,6 +198,7 @@ export class PlayfieldComponent {
         /* Create zoomable window */
         const nonogramRoot = /** @type {HTMLElement} */ (this.#view.querySelector("#nonogram-root"));
         const zoomWindow = new ZoomWindow(this.#nonogramBoard.view, nonogramRoot);
+        this.#nonogramBoard.init(zoomWindow.view);
 
         const undoButton = controlPad.getButton(ControlPadButton.UNDO);
         const redoButton = controlPad.getButton(ControlPadButton.REDO);

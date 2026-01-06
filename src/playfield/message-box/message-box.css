@@ -7,17 +7,20 @@
     justify-content: end;
     gap: 5px;
 
+    pointer-events: none;
+
     z-index: 3;
 }
 
 .message {
+    position: relative;
     background-color: var(--bg1);
-    /* box-shadow: 0px 0px 10px #00000080; */
-
     padding: 10px;
 
     border: 1px solid var(--border-color);
     border-radius: 5px;
+
+    pointer-events: all;
 
     font-family: system-ui;
     font-size: 11pt;

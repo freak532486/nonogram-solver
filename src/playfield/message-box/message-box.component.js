@@ -1,7 +1,7 @@
 import { attachCss, loadHtml } from "../../loader.js";
 
-const MESSAGE_FADEOUT_SECS = 0;
-const MESSAGE_VISIBLE_SECS = 5;
+const MESSAGE_VISIBLE_SECS = 15;
+const MAX_MESSAGES = 5;
 
 export class MessageBox {
     /** @type {HTMLElement | null} */
@@ -33,33 +33,48 @@ export class MessageBox {
      * @param {String} msg 
      */
     showMessage(msg) {
+        /* Remove oldest message if too many messages */
+        const allMsgs = this.view.querySelectorAll(".message");
+        if (allMsgs.length >= MAX_MESSAGES) {
+            allMsgs[0].remove();
+        }
+
+        /* Create div for message */
         const msgDiv = document.createElement("div");
         msgDiv.classList.add("message");
         msgDiv.setAttribute("data-ts", String(Date.now()));
-        msgDiv.textContent = msg;
-        this.view.prepend(msgDiv);
+        msgDiv.appendChild(document.createTextNode(msg));
+        this.view.append(msgDiv);
+
+        /* Remove on click */
+        msgDiv.onclick = () => msgDiv.remove();
+
+        /* Add hide progress bar */
+        const progressDiv = document.createElement("div");
+        progressDiv.style.position = "absolute";
+        progressDiv.style.left = "10px";
+        progressDiv.style.bottom = "3px";
+        progressDiv.style.right = "10px";
+        progressDiv.style.height = "2px";
+        progressDiv.style.backgroundColor = "var(--fg1)";
+        progressDiv.style.transformOrigin = "center left";
+        msgDiv.appendChild(progressDiv);
 
         /* Auto-hide message div after some time */
-        const anim = (/** @type {number} */ dt) => {
+        const anim = () => {
             const ts = Number(msgDiv.getAttribute("data-ts"));
             const elapsed = (Date.now() - ts) / 1000;
 
             /* Case: Message is still fully visible */
             if (elapsed <= MESSAGE_VISIBLE_SECS) {
+                const f = elapsed / MESSAGE_VISIBLE_SECS;
+                progressDiv.style.transform = "scale(" + (1 - f) + ", 1)";
                 requestAnimationFrame(anim);
                 return;
             }
 
             /* Case: Message should be removed */
-            if (elapsed > MESSAGE_VISIBLE_SECS + MESSAGE_FADEOUT_SECS) {
-                msgDiv.remove();
-                return;
-            }
-
-            /* Case: Message is fading out */
-            const f = (elapsed - MESSAGE_VISIBLE_SECS) / MESSAGE_FADEOUT_SECS;
-            msgDiv.style.opacity = String(1.0 - f);
-            requestAnimationFrame(anim);
+            msgDiv.remove();
         };
 
         requestAnimationFrame(anim);
