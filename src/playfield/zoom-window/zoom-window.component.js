@@ -34,6 +34,7 @@ export class ZoomWindow {
         parent.appendChild(this.#view);
 
         /* Basic setup */
+        this.#view.style.position = "relative";
         this.#view.style.touchAction = "none";
         this.#view.style.overflow = "hidden";
         this.#view.style.width = "100%";

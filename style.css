@@ -5,13 +5,13 @@
     --fg2: rgb(209, 97, 21);
     --border-color: rgb(162, 162, 162);
     --border-color-dark: #00000080;
+    --header-gradient-color: color-mix(in srgb, var(--bg1) 90%, black 10%);
+
+    --header-size: 50px;
 }
 
 body {
     margin: 0px;
-    width: 100vw;
-    height: 100vh;
-
     background-color: black;
 }
 
@@ -22,7 +22,6 @@ body {
 
 #content-column {
     position: relative;
-
     display: grid;
     grid-template-rows: auto 1fr;
 

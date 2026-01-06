@@ -1,7 +1,5 @@
 #header {
-    --header-gradient-color: color-mix(in srgb, var(--bg1) 90%, black 10%);
-    --header-size: 50px;
-
+    width: 100%;
     height: var(--header-size);
     overflow: hidden;
 

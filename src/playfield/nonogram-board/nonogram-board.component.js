@@ -18,6 +18,17 @@ export class BoardComponentFullState {
     }
 
     /**
+     * Creates an empty state
+     * 
+     * @param {number} width 
+     * @param {number} height 
+     * @returns {BoardComponentFullState}
+     */
+    static empty(width, height) {
+        return new BoardComponentFullState(Array(width * height).fill(CellKnowledge.UNKNOWN));
+    }
+
+    /**
      * Returns 'true' if this state is equal to some other state
      * 
      * @param {BoardComponentFullState} other

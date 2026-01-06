@@ -1,9 +1,10 @@
 import { CellKnowledge, DeductionStatus, NonogramState } from "../common/nonogram-types.js";
 import { Point } from "../common/point.js";
 import { attachCss, loadHtml } from "../loader.js";
-import { deduceAll, deduceNext } from "../solver.js";
+import { Menu } from "../menu/menu.component.js";
+import { deduceNext } from "../solver.js";
 import { ControlPad, ControlPadButton } from "./control-pad/control-pad.component.js";
-import { MenuButton, PlayfieldMenu } from "./menu/playfield-menu.component.js";
+import { MessageBox } from "./message-box/message-box.component.js";
 import { BoardComponentFullState, NonogramBoardComponent } from "./nonogram-board/nonogram-board.component.js";
 import { ZoomWindow } from "./zoom-window/zoom-window.component.js";
 
@@ -15,34 +16,105 @@ export class PlayfieldComponent {
     /** @type {NonogramBoardComponent} */
     #nonogramBoard;
 
-    /** @type {ZoomWindow | null} */
-    #zoomWindow = null;
+    #messageBox = new MessageBox();
 
     /** @type {ControlPad | null} */
     #controlPad = null;
     #line = /** @type {Array<Point>} */ ([]);
     #lineType = /** @type {CellKnowledge | null} */ (null);
 
-    /** @type {PlayfieldMenu | null} */
-    #menu = null;
-    #onExit = () => {};
-
-    #undoButton = /** @type {HTMLElement | null} */ (null);
-    #redoButton = /** @type {HTMLElement | null} */ (null);
-
     /** @type {Array<BoardComponentFullState>} */
     #stateHistory = [];
     #activeStateIdx = 0;
+
+    #menu;
+
+    #onExit = () => {};
 
     /**
      * Constructs a playfield for the given nonogram. Call init() before using!
      * 
      * @param {Array<Array<number>>} rowHints 
      * @param {Array<Array<number>>} colHints 
+     * @param {Menu} menu;
      */
-    constructor (rowHints, colHints) {
+    constructor (rowHints, colHints, menu) {
         this.#nonogramBoard = new NonogramBoardComponent(rowHints, colHints);
         this.#stateHistory.push(this.#nonogramBoard.getFullState());
+        this.#menu = menu;
+
+        /* Add hint button */
+        const hintButton = document.createElement("button");
+        hintButton.classList.add("entry", "playfield", "border-right", "border-top");
+        hintButton.textContent = "Hint";
+        hintButton.onclick = () => {
+            menu.toggle();
+
+            const state = this.#extractSolverState();
+            const deduction = deduceNext(state);
+
+            if (deduction.status == DeductionStatus.DEDUCTION_MADE) {
+                this.#messageBox.showMessage("You can make a deduction in " + deduction.lineId + ".");
+            } else {
+                this.#messageBox.showMessage(getTextForStatus(deduction.status));
+            }
+        };
+        menu.appendElement(hintButton);
+
+        /* Add Solve Line button */
+        const nextButton = document.createElement("button");
+        nextButton.classList.add("entry", "playfield", "border-top");
+        nextButton.textContent = "Solve one line";
+        nextButton.onclick = () => {
+            menu.toggle();
+            
+            const state = this.#extractSolverState();
+            const deduction = deduceNext(state);
+
+            this.#messageBox.showMessage(getTextForStatus(deduction.status));
+            if (deduction.status !== DeductionStatus.DEDUCTION_MADE) {
+                return;
+            }
+
+            state.applyDeduction(deduction);
+            this.#supplyNextState(new BoardComponentFullState(state.getCellStates()));
+        };
+        menu.appendElement(nextButton);
+
+        /* Add reset button */
+        const resetButton = document.createElement("button");
+        resetButton.classList.add("entry", "playfield", "border-right", "border-top");
+        resetButton.textContent = "Reset";
+        resetButton.onclick = () => {
+            menu.toggle();
+
+            const emptyState = (BoardComponentFullState.empty(
+                this.#nonogramBoard.width,
+                this.#nonogramBoard.height
+            ));
+
+            this.#nonogramBoard.applyState(emptyState);
+            this.#stateHistory = [emptyState];
+            this.controlPad.getButton(ControlPadButton.UNDO).style.visibility = "hidden";
+            this.controlPad.getButton(ControlPadButton.REDO).style.visibility = "hidden";
+        }
+        menu.appendElement(resetButton);
+
+        /* Add exit button */
+        const exitButton = document.createElement("button");
+        exitButton.classList.add("entry", "playfield", "border-top");
+        exitButton.textContent = "Exit";
+        exitButton.style.color = "#ff3b3bff";
+        exitButton.onclick = () => {
+            menu.toggle();
+            this.#onExit();
+        }
+        menu.appendElement(exitButton);
+    }
+
+    /** Should be called after removing the playfield from the screen */
+    destroy() {
+        this.#menu.removeElement("playfield");
     }
 
     /**
@@ -125,15 +197,16 @@ export class PlayfieldComponent {
 
         /* Create zoomable window */
         const nonogramRoot = /** @type {HTMLElement} */ (this.#view.querySelector("#nonogram-root"));
-        this.#zoomWindow = new ZoomWindow(this.#nonogramBoard.view, nonogramRoot);
+        const zoomWindow = new ZoomWindow(this.#nonogramBoard.view, nonogramRoot);
 
         const undoButton = controlPad.getButton(ControlPadButton.UNDO);
         const redoButton = controlPad.getButton(ControlPadButton.REDO);
-        this.#undoButton = undoButton;
-        this.#redoButton = redoButton;
 
         undoButton.style.visibility = "hidden";
         redoButton.style.visibility = "hidden";
+
+        /* Create message box */
+        await this.#messageBox.init(zoomWindow.view);
 
         /* Undo and redo */
         undoButton.onclick = () => {
@@ -265,20 +338,6 @@ export class PlayfieldComponent {
             this.#nonogramBoard.colHints,
             activeState
         );
-    }
-
-    /**
-     * Sets the status text in the header.
-     * 
-     * @param {string} msg 
-     */
-    #setStatusText(msg) {
-        if (!this.#view) {
-            throw new Error("init() was not called.");
-        }
-
-        const header = /** @type {HTMLElement} */ (this.#view.querySelector("#header"));
-        header.textContent = msg;
     }
 
     /**
