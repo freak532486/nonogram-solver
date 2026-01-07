@@ -1,7 +1,11 @@
 import * as storage from "../../storage.js"
-import { attachCss, loadHtml } from "../../loader.js";
+import { loadHtml } from "../../loader.js";
 import { loadNonograms, SerializedNonogram } from "../catalog-load.js";
 import { CellKnowledge } from "../../common/nonogram-types.js";
+
+import catalog from "./catalog.html"
+import catalogEntry from "./catalog-entry.html"
+import "./catalog.css"
 
 export class Catalog {
     #view = /** @type {HTMLElement | null} */ (null);
@@ -15,8 +19,7 @@ export class Catalog {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        attachCss(new URL("./catalog.css", import.meta.url));
-        this.#view = await loadHtml(new URL("./catalog.html", import.meta.url));
+        this.#view = await loadHtml(catalog);
         parent.appendChild(this.#view);
 
         this.refresh();
@@ -41,8 +44,7 @@ export class Catalog {
             const div = await this.#createEntry(
                 "#" + nonogram.id,
                 nonogram.colHints.length + "x" + nonogram.rowHints.length,
-                numFilled / numTotal,
-                nonogram.difficulty
+                numFilled / numTotal
             );
 
             div.onclick = () => this.#onNonogramSelected(nonogram);
@@ -70,15 +72,14 @@ export class Catalog {
     /**
      * Creates a catalog entry with the given content.
      * 
-     * @param {String} name 
+     * @param {String} id 
      * @param {String} size 
      * @param {number} progress 
-     * @param {String} difficulty 
      * @returns 
      */
-    async #createEntry(name, size, progress, difficulty) {
-        const div = await loadHtml(new URL("./catalog-entry.html", import.meta.url));
-        /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .name")).textContent = name;
+    async #createEntry(id, size, progress) {
+        const div = await loadHtml(catalogEntry);
+        /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .name")).textContent = id.substring(0, 6);
         /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .size")).textContent = size;
         /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .progress")).textContent = "Progress: " + Math.floor(progress * 100) + "%";
         return div;

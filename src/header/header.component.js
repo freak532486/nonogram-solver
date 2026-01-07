@@ -1,5 +1,8 @@
-import { attachCss, loadHtml } from "../loader.js";
+import { loadHtml } from "../loader.js";
 import { Menu } from "../menu/menu.component.js";
+
+import header from "./header.html"
+import "./header.css"
 
 export class Header {
 
@@ -22,8 +25,7 @@ export class Header {
      */
     async init(parent) {
         /* Create view */
-        attachCss(new URL("./header.css", import.meta.url));
-        this.#view = await loadHtml(new URL("./header.html", import.meta.url));
+        this.#view = await loadHtml(header);
         parent.appendChild(this.view);
 
         /* Menu toggle */

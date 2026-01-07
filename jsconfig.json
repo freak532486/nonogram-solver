@@ -1,9 +1,10 @@
 {
-    "include": ["src/**/*.js"],
+    "include": ["src/**/*.js", "src/**/*.d.ts"],
     "compilerOptions": {
         "module": "esnext",
-        "moduleResolution": "bundler",
-        "target": "es2024",
+        "moduleResolution": "Bundler",
+        "target": "es2020",
+        "lib": ["DOM", "ES2020"],
         "checkJs": true,
         "strict": true
     }

@@ -1,11 +1,12 @@
 import { BoardComponentFullState } from "./playfield/nonogram-board/nonogram-board.component.js";
 
-
+/* Storage is versioned if there are breaking changes to storage layout */
+const STORAGE_KEY = "storage_v0.01"
 
 /**
  * Retrieves the stored state for the given nonogram, if any.
  * 
- * @param {number} nonogramId 
+ * @param {string} nonogramId 
  * @returns {BoardComponentFullState | null}
  */
 export function retrieveStoredState(nonogramId) {
@@ -16,7 +17,7 @@ export function retrieveStoredState(nonogramId) {
 
 
 /**
- * @returns {Map<number, BoardComponentFullState>}
+ * @returns {Map<string, BoardComponentFullState>}
  */
 export function fetchAllStoredStates() {
     const storage = fetchStorage();
@@ -28,7 +29,7 @@ export function fetchAllStoredStates() {
 
 
 /**
- * @param {number} nonogramId 
+ * @param {string} nonogramId 
  * @param {BoardComponentFullState} state 
  */
 export function storeState(nonogramId, state) {
@@ -53,7 +54,7 @@ class StorageContent {
 
 class StorageEntry {
     /**
-     * @param {number} nonogramId 
+     * @param {string} nonogramId 
      * @param {BoardComponentFullState} state 
      */
     constructor (nonogramId, state) {
@@ -68,7 +69,7 @@ class StorageEntry {
  * @returns {StorageContent}
  */
 function fetchStorage() {
-    const serialized = window.localStorage.getItem("storage");
+    const serialized = window.localStorage.getItem(STORAGE_KEY);
     if (!serialized) {
         return new StorageContent();
     }
@@ -83,5 +84,5 @@ function fetchStorage() {
  */
 function putStorage(storage) {
     const serialized = JSON.stringify(storage);
-    window.localStorage.setItem("storage", serialized);
+    window.localStorage.setItem(STORAGE_KEY, serialized);
 }

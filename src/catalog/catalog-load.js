@@ -1,15 +1,16 @@
+class JoinedFiletype {
+    /** @type {Array<SerializedNonogram>} */
+    nonograms = [];
+}
+
 export class SerializedNonogram {
     /**
-     * @param {number} id
-     * @param {String} name 
-     * @param {String} difficulty 
+     * @param {String} id
      * @param {Array<Array<Number>>} rowHints 
      * @param {Array<Array<Number>>} colHints 
      */
-    constructor (id, name, difficulty, rowHints, colHints) {
+    constructor (id, rowHints, colHints) {
         this.id = id;
-        this.name = name;
-        this.difficulty = difficulty;
         this.rowHints = rowHints;
         this.colHints = colHints;
     }
@@ -21,19 +22,7 @@ export class SerializedNonogram {
  * @returns {Promise<Array<SerializedNonogram>>}
  */
 export async function loadNonograms() {
-    const listJson = await fetch("/nonograms/.list.json");
-    const list = /** @type {Array<String>} */ (JSON.parse(await listJson.text()));
-
-    const ret = [];
-    for (const name of list) {
-        const nonogramRes = await fetch("/nonograms/" + name + ".json");
-        if (nonogramRes.status >= 400) {
-            continue;
-        }
-        
-        const nonogramJson = await nonogramRes.text();
-        ret.push(/** @type {SerializedNonogram} */ (JSON.parse(nonogramJson)));
-    }
-
-    return ret;
+    const serialized = await fetch("/nonograms/joined.json");
+    const joined = /** @type {JoinedFiletype} */ (JSON.parse(await serialized.text()));
+    return joined.nonograms;
 }

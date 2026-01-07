@@ -1,4 +1,7 @@
-import { attachCss, loadHtml } from "../loader.js";
+import { loadHtml } from "../loader.js";
+
+import menu from "./menu.html"
+import "./menu.css"
 
 export class Menu {
     
@@ -9,8 +12,7 @@ export class Menu {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        attachCss(new URL("./menu.css", import.meta.url));
-        this.#view = await loadHtml(new URL("./menu.html", import.meta.url));
+        this.#view = await loadHtml(menu);
         parent.appendChild(this.#view);
 
         /* Hide by default */

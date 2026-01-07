@@ -1,4 +1,7 @@
-import { attachCss, loadHtml } from "../../loader.js";
+import { loadHtml } from "../../loader.js";
+
+import messageBox from "./message-box.html"
+import "./message-box.css"
 
 const MESSAGE_VISIBLE_SECS = 15;
 const MAX_MESSAGES = 5;
@@ -14,8 +17,7 @@ export class MessageBox {
      */
     async init(parent) {
         /* Create view */
-        attachCss(new URL("./message-box.css", import.meta.url));
-        this.#view = await loadHtml(new URL("./message-box.html", import.meta.url));
+        this.#view = await loadHtml(messageBox);
         parent.appendChild(this.#view);
     }
 

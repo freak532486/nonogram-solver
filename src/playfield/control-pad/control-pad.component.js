@@ -1,4 +1,7 @@
-import { attachCss, loadHtml } from "../../loader.js";
+import { loadHtml } from "../../loader.js";
+
+import controlPad from "./control-pad.html"
+import "./control-pad.css"
 
 /** @enum {number} */
 export const ControlPadButton = Object.freeze({
@@ -22,8 +25,7 @@ export class ControlPad {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        attachCss(new URL("./control-pad.css", import.meta.url));
-        this.#view = await loadHtml(new URL("./control-pad.html", import.meta.url));
+        this.#view = await loadHtml(controlPad);
         parent.appendChild(this.#view);
 
         /* Checking behaviour for black and white button */

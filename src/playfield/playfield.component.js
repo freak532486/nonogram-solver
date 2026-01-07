@@ -1,7 +1,7 @@
 import * as storage from "../storage.js"
 import { CellKnowledge, DeductionStatus, NonogramState } from "../common/nonogram-types.js";
 import { Point } from "../common/point.js";
-import { attachCss, loadHtml } from "../loader.js";
+import { loadHtml } from "../loader.js";
 import { Menu } from "../menu/menu.component.js";
 import { deduceNext } from "../solver.js";
 import { ControlPad, ControlPadButton } from "./control-pad/control-pad.component.js";
@@ -9,9 +9,12 @@ import { MessageBox } from "./message-box/message-box.component.js";
 import { BoardComponentFullState, NonogramBoardComponent } from "./nonogram-board/nonogram-board.component.js";
 import { ZoomWindow } from "./zoom-window/zoom-window.component.js";
 
+import playfield from "./playfield.html"
+import "./playfield.css"
+
 export class PlayfieldComponent {
 
-    /** @type {number} */
+    /** @type {string} */
     #nonogramId;
 
     /** @type {HTMLElement | null} */
@@ -38,7 +41,7 @@ export class PlayfieldComponent {
     /**
      * Constructs a playfield for the given nonogram. Call init() before using!
      * 
-     * @param {number} nonogramId
+     * @param {string} nonogramId
      * @param {Array<Array<number>>} rowHints 
      * @param {Array<Array<number>>} colHints 
      * @param {Menu} menu;
@@ -140,8 +143,7 @@ export class PlayfieldComponent {
      */
     async init(parent) {
         /* Create view */
-        attachCss(new URL("./playfield.css", import.meta.url));
-        this.#view = await loadHtml(new URL("./playfield.html", import.meta.url));
+        this.#view = await loadHtml(playfield);
         parent.appendChild(this.#view);
 
         /* Create control pad */
