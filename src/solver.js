@@ -21,26 +21,33 @@ export function deduceAll(state) {
     const keyFunc = getLineKeyFunction(state);
 
     /* Create list of all lines */
-    let lines = new PriorityQueue(keyFunc);
+    let jobQueue = new PriorityQueue(keyFunc);
 
     for (let row = 0; row < state.height; row++) {
-        lines.push(new LineId(LineType.ROW, row));
+        jobQueue.push(LineDeductionJob.overlapDeduction(LineType.ROW, row));
+        jobQueue.push(LineDeductionJob.exhaustiveDeduction(LineType.ROW, row));
     }
 
     for (let col = 0; col < state.width; col++) {
-        lines.push(new LineId(LineType.COLUMN, col));
+        jobQueue.push(LineDeductionJob.overlapDeduction(LineType.COLUMN, col));
+        jobQueue.push(LineDeductionJob.exhaustiveDeduction(LineType.COLUMN, col));
     }
 
-    /* Deduce until no line is left */
-    while (lines.size() > 0) {
+    /* Deduce until no job is left */
+    while (jobQueue.size() > 0) {
         if (Date.now() - startTs > 1000 * TIMEOUT_SECS) {
             return new FullDeductionResult(DeductionStatus.TIMEOUT, newState);
         }
 
-        const line = /** @type {LineId} */ (lines.pop());
-        const deduction = deduceLine(newState, line);
+        const job = /** @type {LineDeductionJob} */ (jobQueue.pop());
+        const deduction = deduceLine(newState, job);
 
-        /* Skip on already-solved line or deduction failure */
+        /* Attempt exhaustive after overlap solving */
+        if (job.mode == DeductionMode.OVERLAP) {
+            jobQueue.push(LineDeductionJob.exhaustiveDeduction(job.lineId.lineType, job.lineId.index));
+        }
+
+        /* Skip on already-solved line */
         if (deduction.status == DeductionStatus.WAS_SOLVED || deduction.status == DeductionStatus.COULD_NOT_DEDUCE) {
             continue;
         }
@@ -51,39 +58,51 @@ export function deduceAll(state) {
         }
 
         /* Add all changed perpendicular lines to lines to check */
-        if (line.lineType == LineType.ROW) {
-            const y = line.index;
+        if (job.lineId.lineType == LineType.ROW) {
+            const y = job.lineId.index;
             for (let x = 0; x < state.width; x++) {
-                const col = new LineId(LineType.COLUMN, x);
                 if (deduction.newKnowledge?.cells[x] == newState.getCell(x, y)) {
                     continue;
                 }
 
-                if (!lines.arr.some(lineId => lineId.lineType == col.lineType && lineId.index == col.index)) {
-                    lines.push(col);
+                const colJob = LineDeductionJob.overlapDeduction(LineType.COLUMN, x);
+                const oldJob = jobQueue.arr.find(job => job.lineId.equals(colJob.lineId));
+                if (oldJob) {
+                    jobQueue.remove(oldJob);
                 }
+
+                jobQueue.push(colJob);
             }
         } else {
-            const x = line.index;
+            const x = job.lineId.index;
             for (let y = 0; y < state.height; y++) {
-                const row = new LineId(LineType.ROW, y);
                 if (deduction.newKnowledge?.cells[y] == newState.getCell(x, y)) {
                     continue;
                 }
 
-                if (!lines.arr.some(lineId => lineId.lineType == row.lineType && lineId.index == row.index)) {
-                    lines.push(row);
+                const rowJob = LineDeductionJob.overlapDeduction(LineType.ROW, y);
+                const oldJob = jobQueue.arr.find(job => job.lineId.equals(rowJob.lineId));
+                if (oldJob) {
+                    jobQueue.remove(oldJob);
                 }
+
+                jobQueue.push(rowJob);
             }
         }
 
         /* Apply deduction to state */
-        const singleDeduction = new SingleDeductionResult(deduction.status, line, deduction.newKnowledge); 
+        const singleDeduction = new SingleDeductionResult(deduction.status, job.lineId, deduction.newKnowledge); 
         newState.applyDeduction(singleDeduction);
     }
 
-    /* Really shouldn't get here ever, but just in case... */
-    return new FullDeductionResult(DeductionStatus.WAS_SOLVED, newState);
+    /* Jobs ran out. Check if all cells are filled. */
+    const allSolved = !newState.getCellStates().some(cell => cell == CellKnowledge.UNKNOWN);
+
+    return new FullDeductionResult(
+        allSolved ? DeductionStatus.WAS_SOLVED : 
+                    DeductionStatus.COULD_NOT_DEDUCE,
+        newState
+    );
 }
 
 /** @param {NonogramState} state  */
@@ -134,20 +153,25 @@ export function deduceNext(state) {
     const lines = new PriorityQueue(keyFunc);
 
     for (let row = 0; row < state.height; row++) {
-        const line = new LineId(LineType.ROW, row);
+        const line = LineDeductionJob.overlapDeduction(LineType.ROW, row);
         lines.push(line);
     }
 
     for (let col = 0; col < state.width; col++) {
-        const line = new LineId(LineType.COLUMN, col);
+        const line = LineDeductionJob.overlapDeduction(LineType.COLUMN, col);
         lines.push(line);
     }
 
     let allSolved = true;
     while (lines.size() > 0) {
-        const line = /** @type {LineId} */ (lines.pop());
-        const deduction = deduceLine(state, line);
+        const job = /** @type {LineDeductionJob} */ (lines.pop());
+        const deduction = deduceLine(state, job);
         allSolved = allSolved && deduction.status == DeductionStatus.WAS_SOLVED;
+
+        /* Attempt exhaustive search if overlap solving fails */
+        if (deduction.status == DeductionStatus.COULD_NOT_DEDUCE && job.mode == DeductionMode.OVERLAP) {
+            lines.push(LineDeductionJob.exhaustiveDeduction(job.lineId.lineType, job.lineId.index));
+        }
 
         /* Skip solved lines */
         if (deduction.status == DeductionStatus.WAS_SOLVED || deduction.status == DeductionStatus.COULD_NOT_DEDUCE) {
@@ -155,38 +179,55 @@ export function deduceNext(state) {
         }
 
         /* Return on timeout, contradiction or deduced line. */
-        return new SingleDeductionResult(deduction.status, line, deduction.newKnowledge);
+        return new SingleDeductionResult(deduction.status, job.lineId, deduction.newKnowledge);
     }
 
-    return new SingleDeductionResult(allSolved ? DeductionStatus.WAS_SOLVED : DeductionStatus.COULD_NOT_DEDUCE, null, null);
+    return new SingleDeductionResult(
+        allSolved ? DeductionStatus.WAS_SOLVED : 
+                    DeductionStatus.COULD_NOT_DEDUCE, null, null
+    );
 }
 
 /**
  * Returns the key function for sorting lines.
  * 
  * @param {NonogramState} state 
- * @returns {(line: LineId) => number}
+ * @returns {(line: LineDeductionJob) => number}
  */
 function getLineKeyFunction(state) {
     /* Order by hint size and number of filled squares */
-    /** @param {LineId} lineId */
-    return (lineId) => {
+    /** @param {LineDeductionJob} line */
+    return (line) => {
+        const lineId = line.lineId;
+
+        /* Exhaustive only after normal line deductions */
+        const exhaustiveMalus = line.mode == DeductionMode.EXHAUSTIVE ? -1000 : 0;
+
         /* Prioritize lines on the edges */
         if (lineId.lineType == LineType.COLUMN) {
-            return Math.abs(lineId.index - state.colHints.length / 2);
+            return exhaustiveMalus + Math.abs(lineId.index - state.colHints.length / 2);
         } else {
-            return Math.abs(lineId.index - state.rowHints.length / 2);
+            return exhaustiveMalus + Math.abs(lineId.index - state.rowHints.length / 2);
         }
     };
 }
+
+/** @enum {number} */
+const DeductionMode = Object.freeze({
+    OVERLAP: 0,
+    EXHAUSTIVE: 1
+});
 
 /**
  * Performs a single line deduction.
  * 
  * @param {NonogramState} state 
- * @param {LineId} lineId 
+ * @param {LineDeductionJob} job
  */
-function deduceLine(state, lineId) {
+function deduceLine(state, job) {
+    const lineId = job.lineId;
+    const mode = job.mode;
+
     const curKnowledge = (lineId.lineType == LineType.ROW) ?
         state.getRowKnowledge(lineId.index) :
         state.getColKnowledge(lineId.index);
@@ -195,9 +236,11 @@ function deduceLine(state, lineId) {
         state.rowHints[lineId.index] :
         state.colHints[lineId.index];
 
-    const ts = Date.now();
-    const ret = overlapLineDeduction(curKnowledge, hints);
-    return ret;
+    switch (mode) {
+        case DeductionMode.OVERLAP: return overlapLineDeduction(curKnowledge, hints);
+        case DeductionMode.EXHAUSTIVE: return exhaustiveLineDeduction(curKnowledge, hints);
+        default: throw new Error("Unknown mode: " + mode);
+    }
 }
 
 class LineDeductionResult {
@@ -319,21 +362,8 @@ function overlapLineDeduction(lineKnowledge, hints) {
         blockLeft = undefined;
     }
 
-    /* Check if any deduction was made at all and if the line is solved. */
-    let allSolved = true;
-    let anyChanged = false;
-    for (let x = 0; x < lineLength; x++) {
-        allSolved = allSolved && newKnowledge.cells[x] != CellKnowledge.UNKNOWN;
-        anyChanged = anyChanged || newKnowledge.cells[x] != lineKnowledge.cells[x];
-    }
-
     /* Done */
-    if (!anyChanged) {
-        const status = allSolved ? DeductionStatus.WAS_SOLVED : DeductionStatus.COULD_NOT_DEDUCE;
-        return new LineDeductionResult(status, null);
-    } else {
-        return new LineDeductionResult(DeductionStatus.DEDUCTION_MADE, newKnowledge);
-    }
+    return deductionResult(lineKnowledge, newKnowledge);
 }
 
 class ContainedBlockResult {
@@ -364,6 +394,78 @@ function calcContainedBlock(x, hints, solution) {
     const isGap = idx == -1 || x >= solution[idx] + hints[idx];
 
     return new ContainedBlockResult(idx, isGap);
+}
+
+/**
+ * For each unknown square: Marks that square black, then checks if there is a solution. If not, then that square must
+ * be white.
+ * 
+ * Expensive, so only used after overlap deduction does not find anything anymore.
+ * 
+ * @param {LineKnowledge} lineKnowledge 
+ * @param {Array<number>} hints
+ * @returns {LineDeductionResult}
+ */
+function exhaustiveLineDeduction(lineKnowledge, hints) {
+    const newKnowledge = new LineKnowledge([...lineKnowledge.cells]);
+    const lineLength = lineKnowledge.cells.length;
+
+    for (var x = 0; x < lineLength; x++) {
+        if (lineKnowledge.cells[x] !== CellKnowledge.UNKNOWN) {
+            continue;
+        }
+
+        /* Attempt black cell */
+        newKnowledge.cells[x] = CellKnowledge.DEFINITELY_BLACK;
+        const solBlack = leftmostSolution(newKnowledge, hints);
+
+        /* If no solution found, cell must be white. */
+        if (!solBlack) {
+            newKnowledge.cells[x] = CellKnowledge.DEFINITELY_WHITE;
+            continue;
+        } else {
+            newKnowledge.cells[x] = CellKnowledge.UNKNOWN;
+        }
+
+        /* Attempt white cell */
+        newKnowledge.cells[x] = CellKnowledge.DEFINITELY_WHITE;
+        const solWhite = leftmostSolution(newKnowledge, hints);
+
+        /* If no solution found, cell must be black. */
+        if (!solWhite) {
+            newKnowledge.cells[x] = CellKnowledge.DEFINITELY_BLACK;
+        } else {
+            newKnowledge.cells[x] = CellKnowledge.UNKNOWN;
+        }
+    }
+
+    /* Done */
+    return deductionResult(lineKnowledge, newKnowledge);
+}
+
+/**
+ * After a line deduction, returns the appropriate result based on the deduced new line state.
+ * 
+ * @param {LineKnowledge} lineKnowledge 
+ * @param {LineKnowledge} newKnowledge 
+ * @returns 
+ */
+function deductionResult(lineKnowledge, newKnowledge) {
+    const lineLength = lineKnowledge.cells.length;
+    let allSolved = true;
+    let anyChanged = false;
+    for (let x = 0; x < lineLength; x++) {
+        allSolved = allSolved && newKnowledge.cells[x] != CellKnowledge.UNKNOWN;
+        anyChanged = anyChanged || newKnowledge.cells[x] != lineKnowledge.cells[x];
+    }
+
+    /* Done */
+    if (!anyChanged) {
+        const status = allSolved ? DeductionStatus.WAS_SOLVED : DeductionStatus.COULD_NOT_DEDUCE;
+        return new LineDeductionResult(status, null);
+    } else {
+        return new LineDeductionResult(DeductionStatus.DEDUCTION_MADE, newKnowledge);
+    }
 }
 
 /**
@@ -498,6 +600,41 @@ function findLastPredecessorIdx(arr, x) {
     return arr.length - 1;
 }
 
+class LineDeductionJob {
+
+    /**
+     * 
+     * @param {LineId} lineId 
+     * @param {DeductionMode} mode 
+     */
+    constructor(lineId, mode) {
+        this.lineId = lineId;
+        this.mode = mode;
+    }
+
+    /**
+     * Creates a new overlap deduction job.
+     * 
+     * @param {LineType} lineType 
+     * @param {number} index 
+     * @returns 
+     */
+    static overlapDeduction(lineType, index) {
+        return new LineDeductionJob(new LineId(lineType, index), DeductionMode.OVERLAP);
+    }
+
+    /**
+     * Creates a new exhaustive deduction job.
+     * 
+     * @param {LineType} lineType 
+     * @param {number} index 
+     * @returns 
+     */
+    static exhaustiveDeduction(lineType, index) {
+        return new LineDeductionJob(new LineId(lineType, index), DeductionMode.EXHAUSTIVE);
+    }
+}
+
 /**
  * Really shitty priority queue
  *
@@ -542,6 +679,21 @@ class PriorityQueue {
      */
     pop() {
         return this.#arr.pop()?.value;
+    }
+
+    /**
+     * Removes the given value from the queue.
+     * 
+     * @param {T} val 
+     */
+    remove(val) {
+        /* Search for element */
+        const idx = this.#arr.map(entry => entry.value).indexOf(val);
+
+        /* Remove */
+        if (idx !== -1) {
+            this.#arr.splice(idx, 1);
+        }
     }
 
     size() {

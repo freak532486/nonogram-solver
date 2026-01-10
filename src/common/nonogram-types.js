@@ -47,6 +47,16 @@ export class LineId {
         // One-indexed for human readability
         return `${this.#lineType == LineType.ROW ? "row" : "column"} ${this.#index + 1}`;
     }
+
+    /**
+     * Compares two line ids.
+     * 
+     * @param {LineId} other 
+     * @returns {boolean}
+     */
+    equals(other) {
+        return this.index == other.index && this.lineType == other.lineType;
+    }
 };
 
 /**
