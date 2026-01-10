@@ -1,5 +1,6 @@
 import { CellKnowledge, DeductionStatus, FullDeductionResult, LineId, LineKnowledge, LineType, NonogramState, SingleDeductionResult } from "./common/nonogram-types.js"
 
+const PRINT_XML = true;
 const TIMEOUT_SECS = 5;
 
 /**
@@ -9,6 +10,11 @@ const TIMEOUT_SECS = 5;
  * @returns {FullDeductionResult} 
  */
 export function deduceAll(state) {
+    /* For debugging, you can print as pbmsolver-xml */
+    if (PRINT_XML) {
+        printXml(state);
+    }
+
     /* Create new state */
     const startTs = Date.now();
     const newState = NonogramState.clone(state);
@@ -78,6 +84,33 @@ export function deduceAll(state) {
 
     /* Really shouldn't get here ever, but just in case... */
     return new FullDeductionResult(DeductionStatus.WAS_SOLVED, newState);
+}
+
+/** @param {NonogramState} state  */
+function printXml(state) {
+    var xml = "";
+
+    xml += "<clues type=\"rows\">";
+    for (const hints of state.rowHints) {
+        xml += "<line>";
+        for (const hint of hints) {
+            xml += "<count>" + hint + "</count>";
+        }
+        xml += "</line>";
+    }
+    xml += "</clues>\n";
+
+    xml += "<clues type=\"columns\">";
+    for (const hints of state.colHints) {
+        xml += "<line>";
+        for (const hint of hints) {
+            xml += "<count>" + hint + "</count>";
+        }
+        xml += "</line>";
+    }
+    xml += "</clues>\n";
+
+    console.log(xml);
 }
 
 /**
@@ -361,9 +394,15 @@ function rightmostSolution(lineKnowledge, hints) {
  * @param {Array<number>} hints
  * @param {number} lineIdx
  * @param {number} hintIdx
+ * @param {Map<String, Array<number> | undefined>} memory
  * @returns {Array<number> | undefined}
  */
-function leftmostSolution( lineKnowledge, hints, lineIdx = 0, hintIdx = 0 ) {
+function leftmostSolution( lineKnowledge, hints, lineIdx = 0, hintIdx = 0, memory = new Map()) {
+    const memKey = lineIdx + "," + hintIdx;
+    if (memory.has(memKey)) {
+        return memory.get(memKey);
+    }
+
     const lineLength = lineKnowledge.cells.length;
     const hint = hints[hintIdx];
     
@@ -371,9 +410,13 @@ function leftmostSolution( lineKnowledge, hints, lineIdx = 0, hintIdx = 0 ) {
     if (!hint) {
         for (let i = lineIdx; i < lineLength; i++) {
             if (lineKnowledge.cells[i] == CellKnowledge.DEFINITELY_BLACK) {
+                memory.set(memKey, undefined);
                 return undefined;
             }
-        } return [];
+        }
+        
+        memory.set(memKey, []);
+        return [];
     }
     
     const numRemainingHints = hints.length - hintIdx;
@@ -410,16 +453,18 @@ function leftmostSolution( lineKnowledge, hints, lineIdx = 0, hintIdx = 0 ) {
         }
         
         /* Find leftmost solution for remaining line */
-        const remainingSolution = leftmostSolution(lineKnowledge, hints, x + hint + 1, hintIdx + 1);
+        const remainingSolution = leftmostSolution(lineKnowledge, hints, x + hint + 1, hintIdx + 1, memory);
         if (!remainingSolution) {
             continue;
         }
         
         const finalSolution = [x];
         remainingSolution.forEach(pos => finalSolution.push(pos));
+        memory.set(memKey, finalSolution);
         return finalSolution;
     }
     
+    memory.set(memKey, undefined);
     return undefined;
 }
 
