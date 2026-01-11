@@ -29,10 +29,13 @@ await catalog.init(mainDiv);
 
 /** @param {SerializedNonogram} nonogram */
 catalog.onNonogramSelected = async nonogram => {
+    const playfield = new PlayfieldComponent(nonogram.id, nonogram.rowHints, nonogram.colHints, menu);
+    if (!await playfield.init(mainDiv)) {
+        return;
+    }
+
     catalog.view.remove();
 
-    const playfield = new PlayfieldComponent(nonogram.id, nonogram.rowHints, nonogram.colHints, menu);
-    await playfield.init(mainDiv);
     playfield.onExit = async () => {
         playfield.view.remove();
         playfield.destroy();

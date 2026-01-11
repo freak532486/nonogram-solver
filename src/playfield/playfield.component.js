@@ -1,5 +1,5 @@
 import * as storage from "../storage.js"
-import { CellKnowledge, DeductionStatus, LineId, NonogramState, SingleDeductionResult } from "../common/nonogram-types.js";
+import { CellKnowledge, DeductionStatus, LineId, LineKnowledge, LineType, NonogramState, SingleDeductionResult } from "../common/nonogram-types.js";
 import { Point } from "../common/point.js";
 import { loadHtml } from "../loader.js";
 import { Menu } from "../menu/menu.component.js";
@@ -22,6 +22,9 @@ export class PlayfieldComponent {
 
     /** @type {NonogramBoardComponent} */
     #nonogramBoard;
+
+    /** @type {NonogramState | undefined} */
+    #solution;
 
     #messageBox = new MessageBox();
 
@@ -86,7 +89,7 @@ export class PlayfieldComponent {
                 return;
             }
 
-            state.applyDeduction(deduction);
+            state.replaceLineKnowledge(deduction.lineId, deduction.newKnowledge);
             this.#nonogramBoard.applyState(new BoardComponentFullState(state.getCellStates()));
             this.#updateHistory();
         };
@@ -132,11 +135,68 @@ export class PlayfieldComponent {
         }
         menu.appendElement(resetButton);
 
+        /* Add error check button */
+        const errorCheckButton = document.createElement("button");
+        errorCheckButton.classList.add("entry", "playfield", "border-top", "border-right");
+        errorCheckButton.textContent = "Check errors";
+        errorCheckButton.onclick = () => {
+            menu.toggle();
+
+            /* Check all cells for errors */
+            const linesToErase = /** @type {Array<LineId>} */ ([]);
+            for (let y = 0; y < this.#nonogramBoard.height; y++) {
+                for (let x = 0; x < this.#nonogramBoard.width; x++) {
+                    const curState = this.#nonogramBoard.getCellState(x, y);
+                    if (curState == CellKnowledge.UNKNOWN) {
+                        continue;
+                    }
+
+                    const correctState = this.#solution?.getCell(x, y);
+                    if (curState == correctState) {
+                        continue;
+                    }
+
+                    const row = new LineId(LineType.ROW, y);
+                    const col = new LineId(LineType.COLUMN, x);
+
+                    if (!linesToErase.find(line => line.equals(row))) {
+                        linesToErase.push(row);
+                    }
+
+                    if (!linesToErase.find(line => line.equals(col))) {
+                        linesToErase.push(col);
+                    }
+                }
+            }
+
+            if (linesToErase.length == 0) {
+                this.#messageBox.showMessage("The current state contains no errors.");
+                return;
+            }
+
+            this.#messageBox.showMessage("Errors were found. Lines with errors were cleared.");
+
+            const newState = new NonogramState(
+                this.#nonogramBoard.rowHints,
+                this.#nonogramBoard.colHints,
+                [...this.#nonogramBoard.getFullState().cells]
+            );
+
+            for (const line of linesToErase) {
+                const lineLength = line.lineType == LineType.ROW ? newState.width : newState.height;
+                const newLineKnowledge = new LineKnowledge(Array(lineLength).fill(CellKnowledge.UNKNOWN));
+                newState.replaceLineKnowledge(line, newLineKnowledge)
+            }
+
+            this.#nonogramBoard.applyState(new BoardComponentFullState(newState.getCellStates()));
+            this.#updateHistory();
+        }
+        menu.appendElement(errorCheckButton);
+
         /* Add exit button */
         const exitButton = document.createElement("button");
-        exitButton.classList.add("entry", "playfield", "border-top", "border-right");
+        exitButton.classList.add("entry", "playfield", "border-top");
         exitButton.textContent = "Exit";
-        exitButton.style.gridColumn = "1 / 3";
         exitButton.style.color = "#ff3b3bff";
         exitButton.onclick = () => {
             menu.toggle();
@@ -160,11 +220,25 @@ export class PlayfieldComponent {
     }
 
     /**
-     * Initializes this component and attaches it to the parent.
+     * Initializes this component and attaches it to the parent. Returns false if the nonogram was not solvable.
      * 
-     * @param {HTMLElement} parent 
+     * @param {HTMLElement} parent
+     * @returns {Promise<boolean>}
      */
     async init(parent) {
+        /* Solve the puzzle ahead of time for error checking */
+        const fullSolveDeduction = deduceAll(NonogramState.empty(
+            this.#nonogramBoard.rowHints, 
+            this.#nonogramBoard.colHints
+        ));
+
+        if (fullSolveDeduction.status !== DeductionStatus.WAS_SOLVED) {
+            this.#menu.removeElement("playfield");
+            return false;
+        }
+
+        this.#solution = fullSolveDeduction.newState;
+
         /* Create view */
         this.#view = await loadHtml(playfield);
         parent.appendChild(this.#view);
@@ -273,6 +347,8 @@ export class PlayfieldComponent {
             undoButton.style.visibility = "visible";
             redoButton.style.visibility = (this.#activeStateIdx == this.#stateHistory.length - 1) ? "hidden" : "visible";
         };
+
+        return true;
     }
 
     /**
@@ -374,8 +450,6 @@ export class PlayfieldComponent {
         const activeState = [...this.#stateHistory[this.#activeStateIdx].cells];
 
         return new NonogramState(
-            this.#nonogramBoard.width,
-            this.#nonogramBoard.height,
             this.#nonogramBoard.rowHints,
             this.#nonogramBoard.colHints,
             activeState

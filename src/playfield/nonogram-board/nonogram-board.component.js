@@ -573,4 +573,14 @@ export class NonogramBoardComponent {
         }
     }
 
+    /**
+     * Puts a marking on the given cell that an error has been made
+     * 
+     * @param {number} x 
+     * @param {number} y 
+     */
+    markError(x, y) {
+        this.getCellDiv(x, y).style.borderColor = "red";
+    }
+
 };

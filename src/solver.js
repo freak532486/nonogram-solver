@@ -91,8 +91,7 @@ export function deduceAll(state) {
         }
 
         /* Apply deduction to state */
-        const singleDeduction = new SingleDeductionResult(deduction.status, job.lineId, deduction.newKnowledge); 
-        newState.applyDeduction(singleDeduction);
+        newState.replaceLineKnowledge(job.lineId, /** @type {LineKnowledge} */ (deduction.newKnowledge));
     }
 
     /* Jobs ran out. Check if all cells are filled. */
