@@ -103,7 +103,7 @@
 }
 
 #control-pad #control-white::before {
-    mask-image: url("/images/white.png");
+    mask-image: url("/images/cross.png");
 }
 
 #control-pad #control-erase {
