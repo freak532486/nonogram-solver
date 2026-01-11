@@ -1,13 +1,13 @@
-import { BoardComponentFullState } from "./playfield/nonogram-board/nonogram-board.component.js";
+import { CellKnowledge } from "./common/nonogram-types.js";
 
 /* Storage is versioned if there are breaking changes to storage layout */
-const STORAGE_KEY = "storage_v0.01"
+const STORAGE_KEY = "storage_v0.03"
 
 /**
  * Retrieves the stored state for the given nonogram, if any.
  * 
  * @param {string} nonogramId 
- * @returns {BoardComponentFullState | null}
+ * @returns {SaveState | null}
  */
 export function retrieveStoredState(nonogramId) {
     const storage = fetchStorage();
@@ -16,9 +16,8 @@ export function retrieveStoredState(nonogramId) {
 }
 
 
-
 /**
- * @returns {Map<string, BoardComponentFullState>}
+ * @returns {Map<string, SaveState>}
  */
 export function fetchAllStoredStates() {
     const storage = fetchStorage();
@@ -28,10 +27,9 @@ export function fetchAllStoredStates() {
 }
 
 
-
 /**
  * @param {string} nonogramId 
- * @param {BoardComponentFullState} state 
+ * @param {SaveState} state 
  */
 export function storeState(nonogramId, state) {
     const storage = fetchStorage();
@@ -47,7 +45,6 @@ export function storeState(nonogramId, state) {
 }
 
 
-
 class StorageContent {
     /** @type {Array<StorageEntry>} */
     entries = [];
@@ -56,11 +53,20 @@ class StorageContent {
 class StorageEntry {
     /**
      * @param {string} nonogramId 
-     * @param {BoardComponentFullState} state 
+     * @param {SaveState} state 
      */
     constructor (nonogramId, state) {
         this.nonogramId = nonogramId;
         this.state = state;
+    }
+}
+
+export class SaveState {
+    /**
+     * @param {Array<CellKnowledge>} cells 
+     */
+    constructor(cells) {
+        this.cells = cells;
     }
 }
 

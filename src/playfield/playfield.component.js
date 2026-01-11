@@ -142,7 +142,7 @@ export class PlayfieldComponent {
             ));
 
             this.#nonogramBoard.applyState(emptyState);
-            storage.storeState(nonogramId, emptyState);
+            storage.storeState(nonogramId, new storage.SaveState(emptyState.cells));
             this.#stateHistory = [emptyState];
             this.#activeStateIdx = 0;
             this.controlPad.getButton(ControlPadButton.UNDO).style.visibility = "hidden";
@@ -165,7 +165,12 @@ export class PlayfieldComponent {
         /* Apply stored state if exists */
         const storedState = storage.retrieveStoredState(this.#nonogramId);
         if (storedState) {
-            this.#nonogramBoard.applyState(storedState);
+            this.#nonogramBoard.applyState(new BoardComponentFullState(
+                storedState.cells,
+                Array(this.#nonogramBoard.height).fill(null).map(() => []),
+                Array(this.#nonogramBoard.width).fill(null).map(() => []),
+                []
+            ));
         }
 
         /* Recheck hints */
@@ -440,7 +445,7 @@ export class PlayfieldComponent {
             return; // Nothing to do
         }
 
-        storage.storeState(this.#nonogramId, curState);
+        storage.storeState(this.#nonogramId, new storage.SaveState(curState.cells));
 
         const undoButton = this.controlPad.getButton(ControlPadButton.UNDO);
         const redoButton = this.controlPad.getButton(ControlPadButton.REDO);
