@@ -2,8 +2,9 @@ import { CellKnowledge, LineId, LineKnowledge, LineType } from "../../common/non
 import { Point } from "../../common/point.js";
 import { deepArraysEqual } from "../../util.js";
 
+import "./nonogram-board.css"
+
 const CELL_SIZE_PX = 16;
-const FONT_SIZE = "10pt";
 const COLOR_BADLINE = "#c27676ff"
 const COLOR_SELECTION = "#aedbff"
 
@@ -142,13 +143,10 @@ export class NonogramBoardComponent {
 
         /* Create templates */
         this.#cellBlackTemplate = document.createElement("div");
-        this.#cellBlackTemplate.style.backgroundColor = "black";
-        this.#cellBlackTemplate.style.borderRadius = "2px";
-        this.#cellBlackTemplate.style.width = (CELL_SIZE_PX - 2) + "px";
-        this.#cellBlackTemplate.style.height = (CELL_SIZE_PX - 2) + "px";
+        this.#cellBlackTemplate.classList.add("cell-black");
 
         this.#cellWhiteTemplate = document.createElement("span");
-        this.#cellWhiteTemplate.style.fontFamily = "sans-serif";
+        this.#cellWhiteTemplate.classList.add("cell-white");
         this.#cellWhiteTemplate.textContent = "X";
 
         /* Create row hint divs */
@@ -156,35 +154,17 @@ export class NonogramBoardComponent {
         for (let row = 0; row < height; row++) {
             /* Create hint container */
             const div = document.createElement("div");
-
-            div.style.display = "flex";
-            div.style.flexDirection = "row";
-            div.style.flexShrink = "0";
-            div.style.justifyContent = "end";
-            div.style.minWidth = CELL_SIZE_PX + "px";
-            div.style.paddingRight = "2px";
+            div.classList.add("hint-div-container", "row");
 
             div.style.borderTop = (row == 0) ? "2px solid black" : "none";
             div.style.borderBottom = (row % 5 == 4) ? "2px solid black" : "1px solid black";
             div.style.borderLeft = "2px solid black";
 
-            div.style.transformOrigin = "center right";
-
             /* Add hints to container. Empty hints should be displayed as a single zero. */
             const hintsWithZero = rowHints[row].length == 0 ? [0] : rowHints[row];
             for (const hint of hintsWithZero) {
                 const hintDiv = document.createElement("div");
-
-                hintDiv.style.fontFamily = "Verdana";
-                hintDiv.style.fontWeight = "bold";
-                hintDiv.style.fontSize = FONT_SIZE;
-
-                hintDiv.style.minWidth = CELL_SIZE_PX + "px";
-                hintDiv.style.height = CELL_SIZE_PX + "px";
-                hintDiv.style.display = "flex";
-                hintDiv.style.alignItems = "center";
-                hintDiv.style.justifyContent = "end";
-                hintDiv.style.userSelect = "none";
+                hintDiv.classList.add("hint", "row");
                 hintDiv.textContent = String(hint);
 
                 div.appendChild(hintDiv);
@@ -198,12 +178,7 @@ export class NonogramBoardComponent {
         for (let col = 0; col < width; col++) {
             /* Create hint container */
             const div = document.createElement("div");
-
-            div.style.display = "flex";
-            div.style.flexDirection = "column";
-            div.style.flexShrink = "0";
-            div.style.justifyContent = "end";
-            div.style.minHeight = CELL_SIZE_PX + "px";
+            div.classList.add("hint-div-container", "column");
 
             div.style.borderLeft = (col == 0) ? "2px solid black" : "none";
             div.style.borderRight = (col % 5 == 4) ? "2px solid black" : "1px solid black";
@@ -213,17 +188,7 @@ export class NonogramBoardComponent {
             const hintsWithZero = colHints[col].length == 0 ? [0] : colHints[col];
             for (const hint of hintsWithZero) {
                 const hintDiv = document.createElement("div");
-
-                hintDiv.style.fontFamily = "Verdana";
-                hintDiv.style.fontWeight = "bold";
-                hintDiv.style.fontSize = FONT_SIZE;
-
-                hintDiv.style.width = CELL_SIZE_PX + "px";
-                hintDiv.style.minHeight = CELL_SIZE_PX + "px";
-                hintDiv.style.display = "flex";
-                hintDiv.style.alignItems = "center";
-                hintDiv.style.justifyContent = "center";
-                hintDiv.style.userSelect = "none";
+                hintDiv.classList.add("hint", "column");
                 hintDiv.textContent = String(hint);
 
                 div.appendChild(hintDiv);
@@ -237,24 +202,12 @@ export class NonogramBoardComponent {
         for (let row = 0; row < height; row++) {
             for (let col = 0; col < width; col++) {
                 const div = document.createElement("div");
-
-                div.style.width = CELL_SIZE_PX + "px";
-                div.style.height = CELL_SIZE_PX + "px";
+                div.classList.add("cell");
 
                 div.style.borderLeft = (col == 0) ? "2px solid black" : "none";
                 div.style.borderTop = (row == 0) ? "2px solid black" : "none";
                 div.style.borderRight = (col % 5 == 4) ? "2px solid black" : "1px solid black";
                 div.style.borderBottom = (row % 5 == 4) ? "2px solid black" : "1px solid black";
-
-                div.style.display = "grid";
-                div.style.gridTemplateColumns = "1fr";
-                div.style.gridTemplateRows = "1fr";
-                div.style.justifyItems = "center";
-                div.style.alignItems = "center";
-                div.style.alignContent = "center";
-                div.style.userSelect = "none";
-
-                div.style.cursor = "pointer";
 
                 div.onclick = () => {
                     this.selection = new Point(col, row);
@@ -266,26 +219,14 @@ export class NonogramBoardComponent {
         }
 
         /* Create selection element */
-        this.#selectionDiv.style.width = CELL_SIZE_PX + "px";
-        this.#selectionDiv.style.height = CELL_SIZE_PX + "px";
-        this.#selectionDiv.style.border = "2px solid red";
-        this.#selectionDiv.style.borderRadius = "4px";
-        this.#selectionDiv.style.boxSizing = "border-box";
-        this.#selectionDiv.style.position = "absolute";
-        this.#selectionDiv.style.zIndex = "10";
+        this.#selectionDiv.classList.add("selection-cursor");
 
         /* Create root element */
         const view = document.createElement("div");
-
-        view.style.display = "grid";
+        view.id = "nonogram-board";
         view.style.gridTemplateRows = `max-content repeat(${height}, auto)`;
         view.style.gridTemplateColumns = `max-content repeat(${width}, auto)`;
-        view.style.width = "fit-content";
-        
-        view.style.padding = "32px";
-        view.style.backgroundColor = "white";
-        view.style.border = "1px solid black";
-        view.style.borderRadius = "10px";
+    
 
         /* Layout and add children to root */
         for (let row = 0; row < height; row++) {
@@ -319,8 +260,6 @@ export class NonogramBoardComponent {
 
         view.appendChild(this.#selectionDiv);
         this.#view = view;
-
-        /* Initial selection value */
     }
 
     /**
@@ -575,12 +514,6 @@ export class NonogramBoardComponent {
             div.style.position = "absolute";
             div.style.left = (cellDiv.offsetLeft + borderLeft) + "px";
             div.style.top = (cellDiv.offsetTop + borderTop) + "px";
-            div.style.width = CELL_SIZE_PX + "px";
-            div.style.height = CELL_SIZE_PX + "px";
-            div.style.display = "flex";
-            div.style.alignItems = "center";
-            div.style.justifyContent = "center";
-            div.style.backgroundColor = "var(--bg1)";
 
             const child = /** @type {HTMLElement} */ (template.cloneNode(true));
             child.style.opacity = "0.5";
