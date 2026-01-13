@@ -11,7 +11,7 @@ export class Catalog {
     #view = /** @type {HTMLElement | null} */ (null);
     #entryTemplate = /** @type {HTMLElement | null} */ (null);
 
-    /** @type {(nonogram: SerializedNonogram) => void} */
+    /** @type {(nonogramId: string) => void} */
     #onNonogramSelected = () => {};
 
     /**
@@ -59,7 +59,7 @@ export class Catalog {
                 numFilled / numTotal
             );
 
-            div.onclick = () => this.#onNonogramSelected(nonogram);
+            div.onclick = () => this.#onNonogramSelected(nonogram.id);
             entriesRoot.appendChild(div);
             
         }
@@ -84,7 +84,7 @@ export class Catalog {
     /**
      * Sets the callback for when a nonogram is selected.
      * 
-     * @param {(nonogram: SerializedNonogram) => void} fn 
+     * @param {(nonogramId: string) => void} fn 
      */
     set onNonogramSelected(fn) {
         this.#onNonogramSelected = fn;

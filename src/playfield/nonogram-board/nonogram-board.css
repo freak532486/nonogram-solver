@@ -1,0 +1,104 @@
+* {
+    --cell-size: 16px;
+    --font-size: 10pt;
+}
+
+#nonogram-board {
+    display: grid;
+    width: fit-content;
+
+    padding: 32px;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.cell-black {
+    background-color: black;
+    border-radius: 2px;
+    width: calc(var(--cell-size) - 2px);
+    height: calc(var(--cell-size) - 2px);
+}
+
+.cell-white {
+    font-family: sans-serif;
+}
+
+.hint-div-container {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: end;
+    box-sizing: border-box;
+}
+
+.hint-div-container.row {
+    flex-direction: row;
+    min-width: var(--cell-size);
+}
+
+.hint-div-container.column {
+    flex-direction: column;
+    min-height: var(--cell-size);
+}
+
+.hint {
+    font-family: Verdana;
+    font-weight: bold;
+    font-size: var(--font-size);
+
+    display: flex;
+    user-select: none;
+}
+
+.hint.row {
+    min-width: var(--cell-size);
+    height: var(--cell-size);
+
+    padding-right: 2px;
+
+    align-items: center;
+    justify-content: end;
+}
+
+.hint.column {
+    width: var(--cell-size);
+    min-height: var(--cell-size);
+
+    align-items: end;
+    justify-content: center;
+}
+
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    align-content: center;
+    user-select: none;
+    cursor: pointer;
+}
+
+.selection-cursor {
+    width: var(--cell-size);
+    height: var(--cell-size);
+
+    border: 2px solid red;
+    border-radius: 4px;
+    box-sizing: border-box;
+
+    position: absolute;
+    z-index: 10;
+}
+
+.line-preview {
+    width: var(--cell-size);
+    height: var(--cell-size);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: var(--bg1);
+}

@@ -213,9 +213,9 @@ export class PlayfieldComponent {
             if (this.#nonogramBoard.getCellState(x, y) == CellKnowledge.UNKNOWN) {
                 return;
             }
-
-            this.#recheckLineHints(curState);
+            
             this.#nonogramBoard.setCellState(x, y, CellKnowledge.UNKNOWN);
+            this.#recheckLineHints(curState);
             this.#updateHistory();
         })
 
