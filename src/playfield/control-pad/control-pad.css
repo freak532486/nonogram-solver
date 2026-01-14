@@ -4,7 +4,7 @@
     grid-template-columns: repeat(5, 1fr);
     gap: 5px;
 
-    width: fit-content;
+    width: max-content;
     height: 100%;
     padding-bottom: 0px;
 
