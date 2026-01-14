@@ -12,6 +12,7 @@ import { ZoomWindow } from "./zoom-window/zoom-window.component.js";
 import playfield from "./playfield.html"
 import "./playfield.css"
 import { LineIdSet } from "../common/line-id-set.js";
+import { Timer } from "./timer/timer.js";
 
 export class PlayfieldComponent {
 
@@ -23,6 +24,8 @@ export class PlayfieldComponent {
 
     /** @type {NonogramBoardComponent} */
     #nonogramBoard;
+
+    #timer = new Timer();
 
     #messageBox = new MessageBox();
 
@@ -195,6 +198,9 @@ export class PlayfieldComponent {
         /* Create view */
         this.#view = await loadHtml(playfield);
         parent.appendChild(this.#view);
+
+        /* Create timer */
+        await this.#timer.init(this.view);
 
         /* Create control pad */
         const footer = /** @type {HTMLElement} */ (this.view.querySelector("#footer"));

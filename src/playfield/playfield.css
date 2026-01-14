@@ -1,4 +1,10 @@
+* {
+    --footer-size: 140px;
+}
+
 #playfield {
+    position: relative;
+
     display: grid;
     grid-template-rows: 1fr auto;
     height: 100%;
@@ -19,7 +25,7 @@
 
 #footer {
     grid-row: 2;
-    height: 140px;
+    height: var(--footer-size);
 
     display: flex;
     flex-direction: column;
