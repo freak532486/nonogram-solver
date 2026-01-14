@@ -466,14 +466,29 @@ export class PlayfieldComponent {
      * @param {Array<CellKnowledge>} prevState 
      */
     #recheckLineHints(prevState) {
-        const curState = this.#nonogramBoard.getFullState().cells;
-        const changed = calcChangedLines(this.#nonogramBoard.width, this.#nonogramBoard.height, prevState, curState);
+        /* Placing crosses for hints can cause other deductions, so this happens in a loop */
+        const LOOP_LIMIT = 50;
 
-        for (const line of changed.asArray()) {
-            const lineKnowledge = this.getLineKnowledge(line);
-            const hints = this.getHints(line);
-            this.#applyHintCheckDeduction(line, checkHints(lineKnowledge, hints));
+        let actualPrevState = prevState;
+        for (let i = 0; i < LOOP_LIMIT; i++) {
+            /* Compare with previous state and deduce all changed lines */
+            const curState = this.#nonogramBoard.getFullState().cells;
+            const changed = calcChangedLines(this.#nonogramBoard.width, this.#nonogramBoard.height, actualPrevState, curState);
+            if (changed.size == 0) {
+                break;
+            }
+
+            for (const line of changed.asArray()) {
+                const lineKnowledge = this.getLineKnowledge(line);
+                const hints = this.getHints(line);
+                this.#applyHintCheckDeduction(line, checkHints(lineKnowledge, hints));
+            }
+
+            /* Next comparison goes against the current state (after hint deduction) */
+            actualPrevState = curState;
         }
+
+        console.error("Canceled hint checking after " + LOOP_LIMIT + " iterations");
     }
 
     /**
