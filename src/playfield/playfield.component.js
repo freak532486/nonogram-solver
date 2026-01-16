@@ -101,7 +101,7 @@ export class PlayfieldComponent {
                 this.#nonogramBoard.getFullState().finishedColHints,
                 this.#nonogramBoard.getFullState().errorLines
             ));
-            this.#recheckLineHints(oldState);
+            this.#recheckLineHints(oldState, false); // No win message if solver solves the puzzle
             this.#updateHistory();
         };
         menu.appendElement(nextButton);
@@ -125,7 +125,7 @@ export class PlayfieldComponent {
                 this.#nonogramBoard.getFullState().finishedColHints,
                 this.#nonogramBoard.getFullState().errorLines
             ));
-            this.#recheckLineHints(oldState);
+            this.#recheckLineHints(oldState, false); // No win message if solver solves the puzzle
             
             this.#updateHistory();
             if (deduction.status !== DeductionStatus.WAS_SOLVED) {
@@ -186,7 +186,7 @@ export class PlayfieldComponent {
 
         /* Recheck hints */
         const emptyState = Array(this.#nonogramBoard.width * this.#nonogramBoard.height).fill(CellKnowledge.UNKNOWN);
-        this.#recheckLineHints(emptyState);
+        this.#recheckLineHints(emptyState, false); // No win message if board was already solved
     }
 
     /** Should be called after removing the playfield from the screen */
@@ -226,7 +226,7 @@ export class PlayfieldComponent {
             }
             
             this.#nonogramBoard.setCellState(x, y, CellKnowledge.UNKNOWN);
-            this.#recheckLineHints(curState);
+            this.#recheckLineHints(curState, true);
             this.#updateHistory();
         })
 
@@ -328,11 +328,10 @@ export class PlayfieldComponent {
             this.#nonogramBoard.getFullState().finishedColHints,
             this.#nonogramBoard.getFullState().errorLines
         ));
-        this.#recheckLineHints(curState);
+        this.#recheckLineHints(curState, true);
 
         /* Update history and clear line */
         this.#updateHistory();
-        this.#checkWin();
 
         this.#line = [];
         this.#lineType = null;
@@ -435,7 +434,7 @@ export class PlayfieldComponent {
     }
 
     #extractSolverState() {
-        const activeState = [...this.#stateHistory[this.#activeStateIdx].cells];
+        const activeState = [...this.#nonogramBoard.getFullState().cells];
 
         return new NonogramState(
             this.#nonogramBoard.width,
@@ -476,8 +475,9 @@ export class PlayfieldComponent {
      * Rechecks the line hints for all changed lines between the current state and the given previous state.
      * 
      * @param {Array<CellKnowledge>} prevState 
+     * @param {boolean} displayWinMessage
      */
-    #recheckLineHints(prevState) {
+    #recheckLineHints(prevState, displayWinMessage) {
         /* Placing crosses for hints can cause other deductions, so this happens in a loop */
         const LOOP_LIMIT = 50;
 
@@ -487,7 +487,7 @@ export class PlayfieldComponent {
             const curState = this.#nonogramBoard.getFullState().cells;
             const changed = calcChangedLines(this.#nonogramBoard.width, this.#nonogramBoard.height, actualPrevState, curState);
             if (changed.size == 0) {
-                this.#checkWin(); // Crosses from line hints can cause a win.
+                this.#checkWin(displayWinMessage); // Crosses from line hints can cause a win.
                 return;
             }
 
@@ -504,7 +504,10 @@ export class PlayfieldComponent {
         console.error("Canceled hint checking after " + LOOP_LIMIT + " iterations");
     }
 
-    #checkWin() {
+    /**
+     * @param {boolean} displayWinMessage 
+     */
+    #checkWin(displayWinMessage) {
         /* Do not display win message twice */
         if (this.#hasWon) {
             return;
@@ -516,7 +519,9 @@ export class PlayfieldComponent {
             return;
         }
 
-        alert("Congratulations! You solved the puzzle in " + this.#timer.getElapsedTimeAsString());
+        if (displayWinMessage) {
+            alert("Congratulations! You solved the puzzle in " + this.#timer.getElapsedTimeAsString());
+        }
         this.#hasWon = true;
         this.#timer.paused = true;
     }
