@@ -15,7 +15,7 @@
     z-index: 3;
 }
 
-.message {
+#message-box .message {
     position: relative;
     background-color: var(--bg1);
     padding: 10px;

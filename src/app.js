@@ -3,6 +3,7 @@ import { Catalog } from "./catalog/component/catalog.component";
 import { Header } from "./header/header.component";
 import { Menu } from "./menu/menu.component";
 import { PlayfieldComponent } from "./playfield/playfield.component";
+import { StartPage } from "./start-page/start-page.component";
 
 /**
  * Initializes the application.
@@ -43,6 +44,7 @@ const mainDiv = /** @type {HTMLElement} */ (document.getElementById("main-div"))
 
 let menu = new Menu();
 let catalog = new Catalog();
+let startPage = new StartPage();
 let playfield = /** @type {PlayfieldComponent | undefined} */ (undefined);
 
 /* If undefined, that means the catalog is open */
@@ -51,11 +53,9 @@ let openNonogramId = /** @type {string | undefined} */ (undefined);
 async function _init() {
     await menu.init(contentRoot);
     await new Header(menu).init(headerDiv);
-    await catalog.init(mainDiv);
+    await startPage.init(mainDiv);
 
     catalog.onNonogramSelected = openNonogram;
-
-    _openCatalog();
 }
 
 async function _openCatalog() {
