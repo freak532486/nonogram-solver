@@ -29,7 +29,7 @@ const startPageNonogramSelector = new StartPageNonogramSelector(catalogAccess);
 
 let menu = new Menu();
 let catalog = new Catalog(catalogAccess);
-let startPage = new StartPage(startPageNonogramSelector);
+let startPage = new StartPage(startPageNonogramSelector, catalogAccess);
 let playfield = /** @type {PlayfieldComponent | undefined} */ (undefined);
 
 /* If undefined, that means the catalog is open */

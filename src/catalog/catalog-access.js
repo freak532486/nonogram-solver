@@ -6,19 +6,40 @@ class JoinedFiletype {
 }
 
 export class CatalogAccess {
-    /** @type {JoinedFiletype | undefined} */
+    /** @type {Map<string, SerializedNonogram> | undefined} */
     #cache;
 
     async getAllNonograms() {
         if (this.#cache) {
-            return this.#cache.nonograms;
+            return Array.from(this.#cache.values());
         }
 
         const serialized = await fetch("/nonograms/joined.json");
         const joined = /** @type {JoinedFiletype} */ (JSON.parse(await serialized.text()));
         normalizeNonograms(joined);
-        this.#cache = joined;
+        
+        /* Fill cache */
+        const cache = new Map();
+        joined.nonograms.forEach(x => cache.set(x.id, x));
+        this.#cache = cache;
+
         return joined.nonograms;
+    }
+
+    /**
+     * Loads the nonogram with the given id. Returns undefined if no such nonogram exists.
+     * 
+     * @param {string} nonogramId 
+     * @returns {Promise<SerializedNonogram | undefined>}
+     */
+    async getNonogram(nonogramId) {
+        /* Fill cache if this hasn't happened yet */
+        if (!this.#cache) {
+            this.getAllNonograms();
+        }
+
+        const cache = /** @type {Map<string, SerializedNonogram} */ (this.#cache);
+        return cache.get(nonogramId);
     }
 
     invalidateCache() {

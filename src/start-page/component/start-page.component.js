@@ -1,14 +1,21 @@
 import startPage from "./start-page.html"
+import notdLinkTemplate from "./notd-link-template.html"
 import "./start-page.css"
 import { loadHtml } from "../../loader";
 import { StartPageNonogramSelector } from "../internal/start-page-nonogram-selector";
+import { CatalogAccess } from "../../catalog/catalog-access";
+import { SerializedNonogram } from "../../common/storage-types";
 
 export class StartPage {
 
     #nonogramSelector;
+    #catalogAccess;
 
     /** @type {HTMLElement | undefined} */
     #view;
+
+    /** @type {HTMLElement | undefined} */
+    #notdLinkTemplate;
 
     /* Listeners */
 
@@ -29,9 +36,11 @@ export class StartPage {
      * Creates a new start page object.
      * 
      * @param {StartPageNonogramSelector} nonogramSelector 
+     * @param {CatalogAccess} catalogAccess;
      */
-    constructor (nonogramSelector) {
+    constructor (nonogramSelector, catalogAccess) {
         this.#nonogramSelector = nonogramSelector;
+        this.#catalogAccess = catalogAccess;
     }
 
 
@@ -42,7 +51,10 @@ export class StartPage {
      */
     async init(parent) {
         /* Append to parent */
-        this.#view = await loadHtml(startPage);
+        if (!this.#view) {
+            this.#view = await loadHtml(startPage);
+        }
+
         parent.appendChild(this.#view);
 
         /* Register listeners */
@@ -54,14 +66,19 @@ export class StartPage {
         }
 
         /* Nonograms of the day */
-        const btnsNotd = /** @type {NodeListOf<HTMLElement>} */ (this.#view.querySelectorAll(".button-notd"));
-        const notdArr = await this.#nonogramSelector.getNonogramIdsOfTheDay();
-        if (btnsNotd.length != notdArr.length) {
-            throw new Error("More/Less buttons for nonogram-of-the-day than there are nonograms-of-the-day");
-        }
+        const notdContainer = /** @type {HTMLElement} */ (this.#view.querySelector(".box.notd>.box-content"));
+        notdContainer.replaceChildren();
 
-        for (let i = 0; i < btnsNotd.length; i++) {
-            btnsNotd[i].onclick = () => this.#onNonogramSelected(notdArr[i]);
+        const notdIds = await this.#nonogramSelector.getNonogramIdsOfTheDay();
+        for (const notdId of notdIds) {
+            const nonogramOfTheDay = await this.#catalogAccess.getNonogram(notdId);
+            if (!nonogramOfTheDay) {
+                continue;
+            }
+
+            const button = await this.#createNonogramOfTheDayButton(nonogramOfTheDay);
+            button.onclick = () => this.#onNonogramSelected(notdId);
+            notdContainer.appendChild(button);
         }
 
         /* Random nonogram */
@@ -124,6 +141,27 @@ export class StartPage {
      */
     set onLogin(fn) {
         this.#onLogin = fn;
+    }
+
+    /**
+     * Creates a nonogram-of-the-day button.
+     * 
+     * @param {SerializedNonogram} nonogram
+     * @returns {Promise<HTMLElement>}
+     */
+    async #createNonogramOfTheDayButton(nonogram) {
+        /* Load template if this has not happened yet */
+        if (!this.#notdLinkTemplate) {
+            this.#notdLinkTemplate = await loadHtml(notdLinkTemplate);
+        }
+
+        /* Fill template */
+        const ret = /** @type {HTMLElement} */ (this.#notdLinkTemplate.cloneNode(true));
+
+        const header = /** @type {HTMLElement} */ (ret.querySelector(".box-header"));
+        header.textContent = nonogram.colHints.length + "x" + nonogram.rowHints.length;
+
+        return ret;
     }
 
 }
