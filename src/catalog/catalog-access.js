@@ -35,10 +35,10 @@ export class CatalogAccess {
     async getNonogram(nonogramId) {
         /* Fill cache if this hasn't happened yet */
         if (!this.#cache) {
-            this.getAllNonograms();
+            await this.getAllNonograms();
         }
 
-        const cache = /** @type {Map<string, SerializedNonogram} */ (this.#cache);
+        const cache = /** @type {Map<string, SerializedNonogram>} */ (this.#cache);
         return cache.get(nonogramId);
     }
 

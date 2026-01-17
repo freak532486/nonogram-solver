@@ -6,6 +6,9 @@ import { loadHtml } from "../../loader";
 import { StartPageNonogramSelector } from "../internal/start-page-nonogram-selector";
 import { CatalogAccess } from "../../catalog/catalog-access";
 import { SerializedNonogram } from "../../common/storage-types";
+import { NonogramPreview } from "../../nonogram-preview/nonogram-preview.component";
+import { CellKnowledge, NonogramState } from "../../common/nonogram-types";
+import * as storage from "../../storage"
 
 export class StartPage {
 
@@ -149,10 +152,25 @@ export class StartPage {
      * @returns {Promise<HTMLElement>}
      */
     async #createNonogramOfTheDayButton(nonogram) {
-        /* Load template if this has not happened yet */
         const ret = await loadHtml(notdLinkTemplate);
-        const header = /** @type {HTMLElement} */ (ret.querySelector(".box-header"));
-        header.textContent = nonogram.colHints.length + "x" + nonogram.rowHints.length;
+
+        /* Fill body with a preview */
+        const content = /** @type {HTMLElement} */ (ret.querySelector(".preview-container"));
+        const cells = storage.retrieveStoredState(nonogram.id)?.cells;
+        const nonogramState = cells ? 
+            new NonogramState(nonogram.rowHints, nonogram.colHints, cells) : 
+            NonogramState.empty(nonogram.rowHints, nonogram.colHints);
+        const preview = new NonogramPreview(nonogramState, 120, 120);
+        await preview.init(content);
+
+        /* Set preview text */
+        const previewTextSpan = /** @type {HTMLElement} */ (ret.querySelector(".preview-text"));
+        
+        const numFilled = nonogramState.getCellStates().filter(x => x != CellKnowledge.UNKNOWN).length;
+        const numTotal = nonogramState.getCellStates().length;
+        const progressText = Math.floor(100 * numFilled / numTotal) + "%";
+
+        previewTextSpan.textContent = nonogramState.width + "x" + nonogramState.height + ", " + progressText + " finished.";
 
         return ret;
     }
@@ -164,8 +182,28 @@ export class StartPage {
      * @returns {Promise<HTMLElement>}
      */
     async #createContinueButton(nonogram) {
-        const template = await loadHtml(continuePlayingTemplate);
-        return template;
+        const ret = await loadHtml(continuePlayingTemplate);
+
+        /* Create preview */
+        const content = /** @type {HTMLElement} */ (ret.querySelector(".preview-container"));
+        const saveState = storage.retrieveStoredState(nonogram.id);
+        const cells = saveState?.cells;
+        const nonogramState = cells ? 
+            new NonogramState(nonogram.rowHints, nonogram.colHints, cells) : 
+            NonogramState.empty(nonogram.rowHints, nonogram.colHints);
+        const preview = new NonogramPreview(nonogramState, 120, 120);
+        await preview.init(content);
+
+        /* Set preview text */
+        const previewTextSpan = /** @type {HTMLElement} */ (ret.querySelector(".preview-text"));
+        
+        const numFilled = nonogramState.getCellStates().filter(x => x != CellKnowledge.UNKNOWN).length;
+        const numTotal = nonogramState.getCellStates().length;
+        const progressText = Math.floor(100 * numFilled / numTotal) + "%";
+
+        previewTextSpan.textContent = nonogramState.width + "x" + nonogramState.height + ", " + progressText + " finished.";
+
+        return ret;
     }
 
 }

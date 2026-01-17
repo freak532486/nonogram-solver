@@ -1,6 +1,6 @@
 #start-page {
     background-color: var(--bg1);
-    overflow: scroll;
+    overflow: hidden scroll;
     box-sizing: border-box;
     height: 100%;
 
@@ -78,12 +78,41 @@
     box-sizing: border-box;
 }
 
+#start-page .preview-container {
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    width: 120px;
+    height: 120px;
+    overflow: hidden;
+}
+
 #start-page .messages .box-header {
     background: linear-gradient(#ffffff00 -100%, #0084ff30 100%);
 }
 
 #start-page .continue .box-header {
     background: linear-gradient(#ffffff00 -100%, #00ff0030 100%);
+}
+
+#start-page .continue .box-content {
+    justify-content: center;
+    align-items: center;
+}
+
+#start-page .preview-root {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    justify-content: center;
+    align-items: center;
 }
 
 #start-page .other .box-header {
@@ -96,15 +125,13 @@
 
 #start-page .notd>.box-content {
     display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 5px;
 }
 
-#start-page .notd>.box-content>.box>.box-header {
-    background: linear-gradient(#ffffff00 -100%, #0000ff30 100%);
-}
-
-#start-page .notd>.box-content>.box>.box-content {
-    /* aspect-ratio: 1; */
-    min-height: 100px;
+#start-page .button-notd {
+    height: fit-content;
+    width: fit-content;
 }
