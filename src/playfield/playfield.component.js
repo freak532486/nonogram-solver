@@ -203,6 +203,7 @@ export class PlayfieldComponent {
         if (state) {
             state.elapsed = this.#timer.elapsed;
             storage.storeState(this.#nonogramId, state);
+            this.#updateLastPlayedNonogramId();
         }
 
         /* Remove all menu entries related to playfield from menu */
@@ -470,6 +471,7 @@ export class PlayfieldComponent {
         }
 
         storage.storeState(this.#nonogramId, new SaveState(curState.cells, this.#timer.elapsed));
+        this.#updateLastPlayedNonogramId();
 
         const undoButton = this.controlPad.getButton(ControlPadButton.UNDO);
         const redoButton = this.controlPad.getButton(ControlPadButton.REDO);
@@ -600,6 +602,21 @@ export class PlayfieldComponent {
     /** @param {() => void} fn */
     set onExit(fn) {
         this.#onExit = fn;
+    }
+
+    /**
+     * Updates the last played nonogram id 
+     */
+    #updateLastPlayedNonogramId() {
+        const store = storage.fetchStorage();
+        
+        if (!this.#hasWon) {
+            store.lastPlayedNonogramId = this.#nonogramId;
+        } else if (store.lastPlayedNonogramId == this.#nonogramId) {
+            store.lastPlayedNonogramId = undefined;
+        }
+
+        storage.putStorage(store);
     }
 
 };

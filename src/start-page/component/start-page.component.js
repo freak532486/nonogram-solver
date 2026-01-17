@@ -1,5 +1,6 @@
 import startPage from "./start-page.html"
 import notdLinkTemplate from "./notd-link-template.html"
+import continuePlayingTemplate from "./continue-playing-template.html"
 import "./start-page.css"
 import { loadHtml } from "../../loader";
 import { StartPageNonogramSelector } from "../internal/start-page-nonogram-selector";
@@ -13,9 +14,6 @@ export class StartPage {
 
     /** @type {HTMLElement | undefined} */
     #view;
-
-    /** @type {HTMLElement | undefined} */
-    #notdLinkTemplate;
 
     /* Listeners */
 
@@ -51,24 +49,25 @@ export class StartPage {
      */
     async init(parent) {
         /* Append to parent */
-        if (!this.#view) {
-            this.#view = await loadHtml(startPage);
-        }
+        this.#view = await loadHtml(startPage);
 
         parent.appendChild(this.#view);
 
         /* Register listeners */
         /* Continue */
-        const btnContinue = /** @type {HTMLElement | undefined} */ (this.#view.querySelector("#button-continue"));
-        const lastPlayed = await this.#nonogramSelector.getLastPlayedNonogramId();
-        if (btnContinue && lastPlayed) {
-            btnContinue.onclick = () => this.#onNonogramSelected(lastPlayed);
+        const continueRoot = /** @type {HTMLElement} */ (this.#view.querySelector("#continue-root"));
+        const lastPlayedId = await this.#nonogramSelector.getLastPlayedNonogramId();
+        const lastPlayed = lastPlayedId && await this.#catalogAccess.getNonogram(lastPlayedId);
+        if (lastPlayed) {
+            const continueBox = await this.#createContinueButton(lastPlayed);
+            continueRoot.appendChild(continueBox);
+
+            const btnContinue = /** @type {HTMLElement} */ (continueBox.querySelector("#button-continue"));
+            btnContinue.onclick = () => this.#onNonogramSelected(lastPlayedId);
         }
 
         /* Nonograms of the day */
         const notdContainer = /** @type {HTMLElement} */ (this.#view.querySelector(".box.notd>.box-content"));
-        notdContainer.replaceChildren();
-
         const notdIds = await this.#nonogramSelector.getNonogramIdsOfTheDay();
         for (const notdId of notdIds) {
             const nonogramOfTheDay = await this.#catalogAccess.getNonogram(notdId);
@@ -151,17 +150,22 @@ export class StartPage {
      */
     async #createNonogramOfTheDayButton(nonogram) {
         /* Load template if this has not happened yet */
-        if (!this.#notdLinkTemplate) {
-            this.#notdLinkTemplate = await loadHtml(notdLinkTemplate);
-        }
-
-        /* Fill template */
-        const ret = /** @type {HTMLElement} */ (this.#notdLinkTemplate.cloneNode(true));
-
+        const ret = await loadHtml(notdLinkTemplate);
         const header = /** @type {HTMLElement} */ (ret.querySelector(".box-header"));
         header.textContent = nonogram.colHints.length + "x" + nonogram.rowHints.length;
 
         return ret;
+    }
+
+    /**
+     * Creates the "continue playing"-box.
+     * 
+     * @param {SerializedNonogram} nonogram
+     * @returns {Promise<HTMLElement>}
+     */
+    async #createContinueButton(nonogram) {
+        const template = await loadHtml(continuePlayingTemplate);
+        return template;
     }
 
 }

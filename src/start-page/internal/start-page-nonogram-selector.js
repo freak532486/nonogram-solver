@@ -1,5 +1,6 @@
 import { CatalogAccess } from "../../catalog/catalog-access";
 import { SerializedNonogram } from "../../common/storage-types";
+import * as storage from "../../storage"
 
 export class StartPageNonogramSelector {
 
@@ -18,7 +19,7 @@ export class StartPageNonogramSelector {
      * @returns {Promise<string | undefined>}
      */
     async getLastPlayedNonogramId() {
-        return undefined; // Not implemented
+        return storage.fetchStorage().lastPlayedNonogramId;
     }
 
     /**

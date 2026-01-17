@@ -19,6 +19,9 @@ export class StorageContent {
 
     /** @type {Array<StorageEntry>} */
     entries = [];
+
+    /** @type {string | undefined} */
+    lastPlayedNonogramId;
 };
 
 export class StorageEntry {
