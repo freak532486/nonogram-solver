@@ -29,10 +29,11 @@ export class Catalog {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        this.#view = await loadHtml(catalog);
-        this.#entryTemplate = await loadHtml(catalogEntry);
+        if (!this.#view) {
+            this.#view = await loadHtml(catalog);
+        }
+        
         parent.appendChild(this.#view);
-
         this.refresh();
     }
 
@@ -68,7 +69,7 @@ export class Catalog {
                 ?? 0;
                 
             const numTotal = nonogram.rowHints.length * nonogram.colHints.length;
-            const div = this.#createEntry(
+            const div = await this.#createEntry(
                 "#" + nonogram.id,
                 nonogram.colHints.length + "x" + nonogram.rowHints.length,
                 numFilled / numTotal
@@ -88,14 +89,6 @@ export class Catalog {
         return this.#view;
     }
 
-    get entryTemplate() {
-        if (!this.#entryTemplate) {
-            throw new Error("init() was not called.");
-        }
-
-        return this.#entryTemplate;
-    }
-
     /**
      * Sets the callback for when a nonogram is selected.
      * 
@@ -113,8 +106,12 @@ export class Catalog {
      * @param {number} progress 
      * @returns 
      */
-    #createEntry(id, size, progress) {
-        const div = /** @type {HTMLElement} */ (this.entryTemplate.cloneNode(true));
+    async #createEntry(id, size, progress) {
+        if (!this.#entryTemplate) {
+            this.#entryTemplate = await loadHtml(catalogEntry);
+        }
+
+        const div = /** @type {HTMLElement} */ (this.#entryTemplate.cloneNode(true));
         /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .name")).textContent = id.substring(0, 6);
         /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .size")).textContent = size;
         /** @type {HTMLElement} */ (div.querySelector(".catalog-entry .progress")).textContent = "Progress: " + Math.floor(progress * 100) + "%";
