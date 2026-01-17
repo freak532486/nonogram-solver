@@ -13,6 +13,7 @@ import playfield from "./playfield.html"
 import "./playfield.css"
 import { LineIdSet } from "../common/line-id-set.js";
 import { Timer } from "./timer/timer.js";
+import { SaveState } from "../common/storage-types.js";
 
 export class PlayfieldComponent {
 
@@ -147,7 +148,7 @@ export class PlayfieldComponent {
             ));
 
             this.#nonogramBoard.applyState(emptyState);
-            storage.storeState(nonogramId, new storage.SaveState(emptyState.cells, 0));
+            storage.storeState(nonogramId, new SaveState(emptyState.cells, 0));
             this.#stateHistory = [emptyState];
             this.#activeStateIdx = 0;
             this.controlPad.getButton(ControlPadButton.UNDO).style.visibility = "hidden";
@@ -192,6 +193,11 @@ export class PlayfieldComponent {
 
     /** Should be called after removing the playfield from the screen */
     destroy() {
+        /* Remove from document */
+        if (this.#view) {
+            this.#view.remove();
+        }
+
         /* Store latest timer */
         const state = storage.retrieveStoredState(this.#nonogramId);
         if (state) {
@@ -463,7 +469,7 @@ export class PlayfieldComponent {
             return; // Nothing to do
         }
 
-        storage.storeState(this.#nonogramId, new storage.SaveState(curState.cells, this.#timer.elapsed));
+        storage.storeState(this.#nonogramId, new SaveState(curState.cells, this.#timer.elapsed));
 
         const undoButton = this.controlPad.getButton(ControlPadButton.UNDO);
         const redoButton = this.controlPad.getButton(ControlPadButton.REDO);

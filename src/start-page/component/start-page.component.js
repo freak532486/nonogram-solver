@@ -48,14 +48,14 @@ export class StartPage {
         /* Register listeners */
         /* Continue */
         const btnContinue = /** @type {HTMLElement | undefined} */ (this.#view.querySelector("#button-continue"));
-        const lastPlayed = this.#nonogramSelector.getLastPlayedNonogramId();
+        const lastPlayed = await this.#nonogramSelector.getLastPlayedNonogramId();
         if (btnContinue && lastPlayed) {
             btnContinue.onclick = () => this.#onNonogramSelected(lastPlayed);
         }
 
         /* Nonograms of the day */
         const btnsNotd = /** @type {NodeListOf<HTMLElement>} */ (this.#view.querySelectorAll(".button-notd"));
-        const notdArr = this.#nonogramSelector.getNonogramIdsOfTheDay();
+        const notdArr = await this.#nonogramSelector.getNonogramIdsOfTheDay();
         if (btnsNotd.length != notdArr.length) {
             throw new Error("More/Less buttons for nonogram-of-the-day than there are nonograms-of-the-day");
         }
@@ -66,9 +66,9 @@ export class StartPage {
 
         /* Random nonogram */
         const btnRandom = /** @type {HTMLElement} */ (this.#view.querySelector("#button-random"));
-        btnRandom.onclick = () => {
-            const nonogramId = this.#nonogramSelector.getRandomNonogramId();
-            this.onNonogramSelected(nonogramId);
+        btnRandom.onclick = async () => {
+            const nonogramId = await this.#nonogramSelector.getRandomNonogramId();
+            this.#onNonogramSelected(nonogramId);
         }
 
         /* Catalog */
@@ -82,6 +82,12 @@ export class StartPage {
         /* Login */
         const btnLogin = /** @type {HTMLElement} */ (this.#view.querySelector("#button-login"));
         btnLogin.onclick = () => this.#onLogin();
+    }
+
+    destroy() {
+        if (this.#view) {
+            this.#view.remove();
+        }
     }
 
     /**

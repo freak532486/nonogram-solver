@@ -1,18 +1,27 @@
 import * as storage from "../../storage.js"
 import { loadHtml } from "../../loader.js";
-import { loadNonograms, SerializedNonogram } from "../catalog-load.js";
 import { CellKnowledge } from "../../common/nonogram-types.js";
 
 import catalog from "./catalog.html"
 import catalogEntry from "./catalog-entry.html"
 import "./catalog.css"
+import { CatalogAccess } from "../catalog-access.js";
 
 export class Catalog {
+    #catalogAccess;
+
     #view = /** @type {HTMLElement | null} */ (null);
     #entryTemplate = /** @type {HTMLElement | null} */ (null);
 
     /** @type {(nonogramId: string) => void} */
     #onNonogramSelected = () => {};
+
+    /**
+     * @param {CatalogAccess} catalogAccess 
+     */
+    constructor (catalogAccess) {
+        this.#catalogAccess = catalogAccess;
+    }
 
     /**
      * Creates the catalog and attaches it to the parent.
@@ -27,6 +36,12 @@ export class Catalog {
         this.refresh();
     }
 
+    destroy() {
+        if (this.#view) {
+            this.#view.remove();
+        }
+    }
+
     /**
      * Reloads all nonograms and updates progress.
      */
@@ -34,7 +49,7 @@ export class Catalog {
         const entriesRoot = /** @type {HTMLElement} */ (this.view.querySelector(".entries"));
         entriesRoot.replaceChildren();
 
-        const loaded = await loadNonograms();
+        const loaded = await this.#catalogAccess.getAllNonograms();
         loaded.sort((a, b) => {
             if (a.colHints.length > b.colHints.length) {
                 return 1;

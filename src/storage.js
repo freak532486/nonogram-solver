@@ -1,4 +1,5 @@
 import { CellKnowledge } from "./common/nonogram-types.js";
+import { SaveState, StorageContent, StorageEntry } from "./common/storage-types.js";
 
 /* Storage is versioned if there are breaking changes to storage layout */
 export const STORAGE_KEY = "storage";
@@ -43,37 +44,6 @@ export function storeState(nonogramId, state) {
     }
 
     putStorage(storage);
-}
-
-
-export class StorageContent {
-    /** @type {number} */
-    versionKey = 1;
-
-    /** @type {Array<StorageEntry>} */
-    entries = [];
-};
-
-export class StorageEntry {
-    /**
-     * @param {string} nonogramId 
-     * @param {SaveState} state
-     */
-    constructor (nonogramId, state) {
-        this.nonogramId = nonogramId;
-        this.state = state;
-    }
-}
-
-export class SaveState {
-    /**
-     * @param {Array<CellKnowledge>} cells 
-     * @param {number} elapsed
-     */
-    constructor(cells, elapsed) {
-        this.cells = cells;
-        this.elapsed = elapsed;
-    }
 }
 
 /**
