@@ -1,4 +1,4 @@
-import { loadHtml } from "../loader.js";
+import { htmlToElement } from "../loader.js";
 
 import menu from "./menu.html"
 import "./menu.css"
@@ -12,7 +12,7 @@ export class Menu {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        this.#view = await loadHtml(menu);
+        this.#view = await htmlToElement(menu);
         parent.appendChild(this.#view);
 
         /* Hide by default */

@@ -2,7 +2,7 @@ import startPage from "./start-page.html"
 import notdLinkTemplate from "./notd-link-template.html"
 import continuePlayingTemplate from "./continue-playing-template.html"
 import "./start-page.css"
-import { loadHtml } from "../../loader";
+import { htmlToElement } from "../../loader";
 import { StartPageNonogramSelector } from "../internal/start-page-nonogram-selector";
 import { CatalogAccess } from "../../catalog/catalog-access";
 import { SerializedNonogram } from "../../common/storage-types";
@@ -52,7 +52,7 @@ export class StartPage {
      */
     async init(parent) {
         /* Append to parent */
-        this.#view = await loadHtml(startPage);
+        this.#view = await htmlToElement(startPage);
 
         parent.appendChild(this.#view);
 
@@ -152,7 +152,7 @@ export class StartPage {
      * @returns {Promise<HTMLElement>}
      */
     async #createNonogramOfTheDayButton(nonogram) {
-        const ret = await loadHtml(notdLinkTemplate);
+        const ret = await htmlToElement(notdLinkTemplate);
 
         /* Fill body with a preview */
         const content = /** @type {HTMLElement} */ (ret.querySelector(".preview-container"));
@@ -182,7 +182,7 @@ export class StartPage {
      * @returns {Promise<HTMLElement>}
      */
     async #createContinueButton(nonogram) {
-        const ret = await loadHtml(continuePlayingTemplate);
+        const ret = await htmlToElement(continuePlayingTemplate);
 
         /* Create preview */
         const content = /** @type {HTMLElement} */ (ret.querySelector(".preview-container"));

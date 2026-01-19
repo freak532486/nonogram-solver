@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "esbuild --bundle src/main.js --outfile=dist/bundle.js  --platform=browser  --format=esm  --sourcemap  --loader:.html=file  --loader:.css=css  --external:/images/*  --external:/nonograms/joined.json --watch",
-    "build": "esbuild --bundle src/main.js --outfile=dist/bundle.js  --platform=browser  --format=esm  --sourcemap  --loader:.html=file  --loader:.css=css  --external:/images/*  --external:/nonograms/joined.json"
+    "dev": "esbuild --bundle src/main.js --outfile=dist/bundle.js  --platform=browser  --format=esm  --sourcemap  --loader:.html=text  --loader:.css=css  --external:/images/*  --external:/nonograms/joined.json --watch && cp -r resources/* dist/",
+    "build": "esbuild --bundle src/main.js --outfile=dist/bundle.js  --platform=browser  --format=esm  --sourcemap  --loader:.html=text  --loader:.css=css  --external:/images/*  --external:/nonograms/joined.json && cp -r resources/* dist/"
   },
   "repository": {
     "type": "git",

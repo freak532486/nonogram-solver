@@ -2,17 +2,12 @@ import { CatalogAccess } from "./catalog/catalog-access";
 import { Catalog } from "./catalog/component/catalog.component";
 import { Header } from "./header/header.component";
 import { Menu } from "./menu/menu.component";
+import { NotFoundPage } from "./not-found-page/not-found-page";
 import { PlayfieldComponent } from "./playfield/playfield.component";
+import { Router } from "./router";
 import { StartPage } from "./start-page/component/start-page.component";
 import { StartPageNonogramSelector } from "./start-page/internal/start-page-nonogram-selector";
 import * as storageMigration from "./storage-migration"
-
-/**
- * Initializes the application.
- */
-export async function init() {
-    await _init();
-}
 
 
 /* ------------------------------ IMPLEMENTATION ------------------------------ */
@@ -27,6 +22,8 @@ const mainDiv = /** @type {HTMLElement} */ (document.getElementById("main-div"))
 const catalogAccess = new CatalogAccess();
 const startPageNonogramSelector = new StartPageNonogramSelector(catalogAccess);
 
+let notFoundPage = new NotFoundPage();
+let router = new Router();
 let menu = new Menu();
 let header = new Header(menu);
 let catalog = new Catalog(catalogAccess);
@@ -36,7 +33,7 @@ let playfield = /** @type {PlayfieldComponent | undefined} */ (undefined);
 /* If undefined, that means the catalog is open */
 let openNonogramId = /** @type {string | undefined} */ (undefined);
 
-async function _init() {
+export async function init() {
     window.addEventListener("load", () => {
         catalogAccess.invalidateCache();
         storageMigration.performStorageMigration();
@@ -45,18 +42,26 @@ async function _init() {
     await menu.init(contentRoot);
     await header.init(headerDiv);
 
-    header.onLogoClicked = openStartPage;
+    header.onLogoClicked = () => navigateTo("/");
 
-    startPage.onNonogramSelected = nonogramId => openNonogram(nonogramId);
+    startPage.onNonogramSelected = nonogramId => navigateTo("/n/" + nonogramId);
     startPage.onLogin = () => window.alert("Login dialog opened");
-    startPage.onOpenCatalog = openCatalog;
+    startPage.onOpenCatalog = () => navigateTo("/catalog");
 
-    catalog.onNonogramSelected = openNonogram;
+    catalog.onNonogramSelected = nonogramId => navigateTo("/n/" + nonogramId);
 
-    await openStartPage();
+    router.run();
 }
 
-async function openStartPage() {
+/**
+ * 
+ * @param {string} path 
+ */
+export function navigateTo(path) {
+    window.location.replace(path);
+}
+
+export async function openStartPage() {
     /* Remove playfield if necessary */
     if (playfield) {
         playfield.destroy();
@@ -72,7 +77,7 @@ async function openStartPage() {
     document.title = TITLE_STARTPAGE;
 }
 
-async function openCatalog() {
+export async function openCatalog() {
     /* Remove playfield if necessary */
     if (playfield) {
         playfield.destroy();
@@ -93,7 +98,7 @@ async function openCatalog() {
  * @param {string} nonogramId
  * @returns {Promise<Boolean>} 
  */
-async function openNonogram(nonogramId) {
+export async function openNonogram(nonogramId) {
     /* Nothing to do if nonogram is already open */
     if (openNonogramId == nonogramId) {
         return true;
@@ -122,4 +127,8 @@ async function openNonogram(nonogramId) {
     openNonogramId = nonogramId;
     document.title = "Playing " + nonogram.colHints.length + "x" + nonogram.rowHints.length + " Nonogram"
     return true;
+}
+
+export function showNotFoundPage() {
+    notFoundPage.show();
 }

@@ -1,6 +1,6 @@
 import timer from "./timer.html"
 import "./timer.css"
-import { loadHtml } from "../../loader.js";
+import { htmlToElement } from "../../loader.js";
 
 export class Timer {
 
@@ -26,7 +26,7 @@ export class Timer {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        this.#view = await loadHtml(timer);
+        this.#view = await htmlToElement(timer);
         parent.appendChild(this.view);
 
         this.#updateDisplayedTime();

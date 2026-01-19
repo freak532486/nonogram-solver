@@ -1,5 +1,5 @@
 import * as storage from "../../storage.js"
-import { loadHtml } from "../../loader.js";
+import { htmlToElement } from "../../loader.js";
 import { CellKnowledge } from "../../common/nonogram-types.js";
 
 import catalog from "./catalog.html"
@@ -30,7 +30,7 @@ export class Catalog {
      */
     async init(parent) {
         if (!this.#view) {
-            this.#view = await loadHtml(catalog);
+            this.#view = await htmlToElement(catalog);
         }
         
         parent.appendChild(this.#view);
@@ -108,7 +108,7 @@ export class Catalog {
      */
     async #createEntry(id, size, progress) {
         if (!this.#entryTemplate) {
-            this.#entryTemplate = await loadHtml(catalogEntry);
+            this.#entryTemplate = await htmlToElement(catalogEntry);
         }
 
         const div = /** @type {HTMLElement} */ (this.#entryTemplate.cloneNode(true));

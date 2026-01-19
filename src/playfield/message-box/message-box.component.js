@@ -1,4 +1,4 @@
-import { loadHtml } from "../../loader.js";
+import { htmlToElement } from "../../loader.js";
 
 import messageBox from "./message-box.html"
 import "./message-box.css"
@@ -17,7 +17,7 @@ export class MessageBox {
      */
     async init(parent) {
         /* Create view */
-        this.#view = await loadHtml(messageBox);
+        this.#view = await htmlToElement(messageBox);
         parent.appendChild(this.#view);
     }
 

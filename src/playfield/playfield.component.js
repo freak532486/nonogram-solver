@@ -1,7 +1,7 @@
 import * as storage from "../storage.js"
 import { CellKnowledge, DeductionStatus, LineId, LineKnowledge, LineType, NonogramState, SingleDeductionResult } from "../common/nonogram-types.js";
 import { Point } from "../common/point.js";
-import { loadHtml } from "../loader.js";
+import { htmlToElement } from "../loader.js";
 import { Menu } from "../menu/menu.component.js";
 import { checkHints, deduceAll, deduceNext, HintCheckResult, isSolved } from "../solver.js";
 import { ControlPad, ControlPadButton } from "./control-pad/control-pad.component.js";
@@ -217,7 +217,7 @@ export class PlayfieldComponent {
      */
     async init(parent) {
         /* Create view */
-        this.#view = await loadHtml(playfield);
+        this.#view = await htmlToElement(playfield);
         parent.appendChild(this.#view);
 
         /* Create timer */

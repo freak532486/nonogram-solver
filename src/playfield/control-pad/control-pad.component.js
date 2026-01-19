@@ -1,4 +1,4 @@
-import { loadHtml } from "../../loader.js";
+import { htmlToElement } from "../../loader.js";
 
 import controlPad from "./control-pad.html"
 import "./control-pad.css"
@@ -25,7 +25,7 @@ export class ControlPad {
      * @param {HTMLElement} parent 
      */
     async init(parent) {
-        this.#view = await loadHtml(controlPad);
+        this.#view = await htmlToElement(controlPad);
         parent.appendChild(this.#view);
 
         /* Checking behaviour for black and white button */

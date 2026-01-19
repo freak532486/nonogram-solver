@@ -1,5 +1,5 @@
 import { CellKnowledge, NonogramState } from "../common/nonogram-types";
-import { loadHtml } from "../loader";
+import { htmlToElement } from "../loader";
 import nonogramPreview from "./nonogram-preview.html";
 
 const CELL_SIZE_PX = 16;
@@ -31,7 +31,7 @@ export class NonogramPreview {
      */
     async init(parent) {
         /* Load canvas */
-        this.#view = /** @type {HTMLCanvasElement} */ (await loadHtml(nonogramPreview));
+        this.#view = /** @type {HTMLCanvasElement} */ (await htmlToElement(nonogramPreview));
         parent.appendChild(this.#view);
         const ctx = /** @type {CanvasRenderingContext2D} */ (this.#view.getContext("2d"));
 
