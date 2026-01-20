@@ -594,10 +594,10 @@ export class NonogramBoardComponent {
             /* Cross out finished hints */
             for (let i = 0; i < div.children.length; i++) {
                 const child = /** @type {HTMLElement} */ (div.children[i]);
-                child.style.textDecoration = "none";
+                child.classList.remove("crossed-out");
 
                 if (this.#finishedRowHints[y].some(k => k == i)) {
-                    child.style.textDecoration = "line-through";
+                    child.classList.add("crossed-out");
                 }
             }
         }
@@ -621,10 +621,10 @@ export class NonogramBoardComponent {
             /* Cross out finished hints */
             for (let i = 0; i < div.children.length; i++) {
                 const child = /** @type {HTMLElement} */ (div.children[i]);
-                child.style.textDecoration = "none";
+                child.classList.remove("crossed-out");
 
                 if (this.#finishedColHints[x].some(k => k == i)) {
-                    child.style.textDecoration = "line-through";
+                    child.classList.add("crossed-out");
                 }
             }
         }

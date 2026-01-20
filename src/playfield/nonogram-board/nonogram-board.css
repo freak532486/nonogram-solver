@@ -42,12 +42,20 @@
 }
 
 .hint {
+    position: relative;
+
     font-family: Verdana;
     font-weight: bold;
     font-size: var(--font-size);
 
+    text-decoration-color: red;
+
     display: flex;
     user-select: none;
+}
+
+.hint.crossed-out {
+    text-decoration: 3px line-through;
 }
 
 .hint.row {
