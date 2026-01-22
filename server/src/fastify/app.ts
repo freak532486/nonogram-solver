@@ -1,3 +1,5 @@
+import "source-map-support/register";
+import * as global from "../global.js"
 import { join } from 'node:path'
 import AutoLoad, { AutoloadPluginOptions } from '@fastify/autoload'
 import { FastifyPluginAsync, FastifyServerOptions } from 'fastify'
@@ -13,7 +15,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
   fastify,
   opts
 ): Promise<void> => {
-  // Place here your custom code!
+  /* Initialize services */
+  await global.init();
 
   // Do not touch the following lines
 
