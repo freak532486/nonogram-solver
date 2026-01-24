@@ -32,9 +32,6 @@ const app: FastifyPluginAsync<AppOptions> = async (
     dir: join(__dirname, 'routes'),
     options: opts
   })
-
-  /* Perform database migrations */
-  
 }
 
 export default app

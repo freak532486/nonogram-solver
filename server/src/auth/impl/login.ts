@@ -4,24 +4,19 @@ import database from "../../db/database";
 import { FastifyInstance } from "fastify";
 import TokenPair from "../types/token-pair";
 import auth from "../auth";
+import BasicAuthContent from "../types/basic-auth-content";
 
 /**
  * Performs a basic auth login. On success, returns new session- and refresh-token for that user. On failure, returns
  * undefined.
  */
-export default async function performLogin(fastify: FastifyInstance, authHeader: string): Promise<TokenPair | undefined> {
+export default async function performLogin(fastify: FastifyInstance, basicAuth: BasicAuthContent): Promise<TokenPair | undefined> {
     /* Fetch state from fastify object */
     const db: Database = fastify.state.db;
 
-    /* Parse basic auth */
-    const parsedAuth = authUtils.parseBasicAuthHeader(authHeader);
-    if (!parsedAuth) {
-        return undefined;
-    }
-
     /* Find user entry in database */
     const sql = "SELECT id, password_hash FROM users WHERE username = ?";
-    const results = await database.runSql(db, sql, parsedAuth.username);
+    const results = await database.runSql(db, sql, basicAuth.username);
 
     /* Bad auth if user was not found */
     if (results.length == 0) {
@@ -30,7 +25,7 @@ export default async function performLogin(fastify: FastifyInstance, authHeader:
 
     /* Compare password hash */
     const storedHash = results[0].password_hash;
-    if (await authUtils.validatePassword(parsedAuth.password, storedHash) == false) {
+    if (await authUtils.validatePassword(basicAuth.password, storedHash) == false) {
         return undefined;
     }
 

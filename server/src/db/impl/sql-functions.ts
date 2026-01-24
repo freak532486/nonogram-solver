@@ -5,9 +5,9 @@ import * as sqlite from "sqlite"
  * array.
  */
 export async function runSql(db: sqlite.Database, sql: string, ...params: unknown[]): Promise<any[]> {
-    const statement = await db.prepare(sql, params);
+    const statement = await db.prepare(sql);
     try {
-        return await statement.all();
+        return await statement.all(...params);
     } finally {
         await statement.finalize();
     }

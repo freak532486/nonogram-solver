@@ -5,7 +5,12 @@ import database from "../../db/database";
 /**
  * Registers a new user. Returns the new userId if registration succeeded, and undefined otherwise.
  */
-export async function registerUser(fastify: FastifyInstance, username: string, password: string) {
+export async function registerUser(
+    fastify: FastifyInstance, 
+    username: string,
+    password: string
+): Promise<number | undefined>
+{
     const db = fastify.state.db;
 
     /* Do everything in transaction, just in case of concurrency issues. */
@@ -16,9 +21,10 @@ export async function registerUser(fastify: FastifyInstance, username: string, p
         }
 
         /* Insert new user */
-        const hashedPassword = createPasswordHash(password);
-        const sql = "INSERT INTO users VALUES ($username, $passwordHash)";
-        return await database.runSql(db, sql, { "username": username, "passwordHash": hashedPassword});
+        const hashedPassword = await createPasswordHash(password);
+        fastify.log.info(hashedPassword);
+        const sql = "INSERT INTO users (username, password_hash) VALUES ($username, $passwordHash) RETURNING *";
+        return await database.runSql(db, sql, { $username: username, $passwordHash: hashedPassword});
     });
 
     /* Return either id or nothing */
@@ -34,6 +40,6 @@ export async function checkIfUserExists(fastify: FastifyInstance, username: stri
 
     /* Check if user already exists */
     const sql = "SELECT id FROM users WHERE username = $username";
-    const result = await database.runSql(db, sql, { "username": username });
+    const result = await database.runSql(db, sql, { $username: username });
     return result.length !== 0;
 }

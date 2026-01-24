@@ -23,7 +23,7 @@ export default async function authTableCreation(fastify: FastifyInstance) {
     CREATE TABLE user_sessions (
         user_id INTEGER PRIMARY KEY,
         refresh_token TEXT NOT NULL,
-        refresh_token_created INTEGER NOT NULL,
+        creation_timestamp INTEGER NOT NULL,
         FOREIGN KEY(user_id) REFERENCES users(id)
     )
     `
