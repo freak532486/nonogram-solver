@@ -1,9 +1,11 @@
 import { CellKnowledge } from "./common/nonogram-types.js";
-import { SaveState, StorageContent, StorageEntry } from "./common/storage-types.js";
+
+/** @typedef {import("nonojs-common").SaveFile} SaveFile */
+/** @typedef {import("nonojs-common").SaveFileEntry} SaveFileEntry */
+/** @typedef {import("nonojs-common").SaveState} SaveState */
 
 /* Storage is versioned if there are breaking changes to storage layout */
 export const STORAGE_KEY = "storage";
-export const STORAGE_VERSION = "V0.04";
 
 /**
  * Retrieves the stored state for the given nonogram, if any.
@@ -13,7 +15,6 @@ export const STORAGE_VERSION = "V0.04";
  */
 export function retrieveStoredState(nonogramId) {
     const storage = fetchStorage();
-
     return storage.entries.find(entry => entry.nonogramId == nonogramId)?.state ?? null;
 }
 
@@ -40,7 +41,10 @@ export function storeState(nonogramId, state) {
     if (matchingEntry) {
         matchingEntry.state = state;
     } else {
-        storage.entries.push(new StorageEntry(nonogramId, state));
+        storage.entries.push({
+            nonogramId: nonogramId,
+            state: state
+        });
     }
 
     putStorage(storage);
@@ -49,21 +53,35 @@ export function storeState(nonogramId, state) {
 /**
  * Loads storage contents.
  * 
- * @returns {StorageContent}
+ * @returns {SaveFile}
  */
 export function fetchStorage() {
     const serialized = window.localStorage.getItem(STORAGE_KEY);
     if (!serialized) {
-        return new StorageContent();
+        return getEmptySaveFile();
     }
 
     return JSON.parse(serialized);
 }
 
 /**
+ * Returns an empty save file. The version number must be kept up to date!
+ * 
+ * @returns {SaveFile}
+ */
+function getEmptySaveFile()
+{
+    return {
+        versionKey: 2,
+        lastPlayedNonogramId: undefined,
+        entries: []
+    }
+}
+
+/**
  * Writes new storage contents.
  * 
- * @param {StorageContent} storage 
+ * @param {SaveFile} storage 
  */
 export function putStorage(storage) {
     const serialized = JSON.stringify(storage);

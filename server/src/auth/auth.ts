@@ -1,7 +1,7 @@
 import { parseBasicAuthHeader, parseBearerAuthHeader } from "./impl/common";
 import performLogin from "./impl/login";
 import { checkIfUserExists, registerUser } from "./impl/register";
-import { refreshSession, refreshTokenForUser } from "./impl/token-refresh";
+import { getUserIdForSession, refreshSession, refreshTokenForUser } from "./impl/token-refresh";
 
 const auth = {
     parseBasicAuthHeader,
@@ -10,8 +10,10 @@ const auth = {
     performLogin,
     registerUser,
     checkIfUserExists,
+
     refreshTokenForUser,
-    refreshSession
+    refreshSession,
+    getUserIdForSession
 }
 
 export default auth;

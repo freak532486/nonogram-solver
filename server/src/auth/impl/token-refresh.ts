@@ -73,3 +73,12 @@ export async function refreshSession(fastify: FastifyInstance, refreshToken: str
     /* Perform refresh */
     return await refreshTokenForUser(fastify, result[0].user_id);
 }
+
+/**
+ * Returns the id of the user that owns the given session. Returns undefined if the session token is invalid.
+ */
+export async function getUserIdForSession(fastify: FastifyInstance, sessionToken: string): Promise<number | undefined>
+{
+    return fastify.state.tokenStore.getUserId(sessionToken);
+
+}

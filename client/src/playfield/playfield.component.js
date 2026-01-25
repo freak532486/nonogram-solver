@@ -13,7 +13,8 @@ import playfield from "./playfield.html"
 import "./playfield.css"
 import { LineIdSet } from "../common/line-id-set.js";
 import { Timer } from "./timer/timer.js";
-import { SaveState } from "../common/storage-types.js";
+
+/** @typedef {import("nonojs-common").SaveState} SaveState */
 
 export class PlayfieldComponent {
 
@@ -148,7 +149,10 @@ export class PlayfieldComponent {
             ));
 
             this.#nonogramBoard.applyState(emptyState);
-            storage.storeState(nonogramId, new SaveState(emptyState.cells, 0));
+            storage.storeState(nonogramId, {
+                cells: emptyState.cells,
+                elapsed: 0
+            });
             this.#stateHistory = [emptyState];
             this.#activeStateIdx = 0;
             this.controlPad.getButton(ControlPadButton.UNDO).style.visibility = "hidden";
@@ -470,7 +474,10 @@ export class PlayfieldComponent {
             return; // Nothing to do
         }
 
-        storage.storeState(this.#nonogramId, new SaveState(curState.cells, this.#timer.elapsed));
+        storage.storeState(this.#nonogramId, {
+            cells: curState.cells,
+            elapsed: this.#timer.elapsed
+        });
         this.#updateLastPlayedNonogramId();
 
         const undoButton = this.controlPad.getButton(ControlPadButton.UNDO);

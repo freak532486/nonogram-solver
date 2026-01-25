@@ -1,5 +1,6 @@
-import { StorageContent } from "./common/storage-types.js";
 import * as storage from "./storage.js"
+
+/** @typedef {import("nonojs-common").SaveFile} SaveFile */
 
 export async function performStorageMigration() {
     await MIGR001_migrateStorageKey();
@@ -31,7 +32,7 @@ async function MIGR001_migrateStorageKey() {
 /**
  * MIGR002: Adds a version key to the storage, so that migrations can detect old versions.
  * 
- * @param {StorageContent} val 
+ * @param {SaveFile} val 
  */
 async function MIGR002_addVersionKey(val) {
     const VERSION_KEY = 1;
@@ -47,7 +48,7 @@ async function MIGR002_addVersionKey(val) {
  * MIGR003: Adds the "elapsed" time to the savestate. Since we don't know how long the player has played the nonogram,
  *          we just put a zero.
  * 
- * @param {StorageContent} val 
+ * @param {SaveFile} val 
  */
 async function MIGR003_addSolvedFlag(val) {
     /* Version key check */
