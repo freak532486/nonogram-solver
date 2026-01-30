@@ -1,7 +1,7 @@
-import { htmlToElement } from "../../loader"
+import { htmlToElement } from "../../../loader"
 import loginTemplate from "./login.template.html"
 import "./login.style.css"
-import "../../common/styles/boxes.css"
+import "../../../common/styles/boxes.css"
 
 export default class LoginComponent {
 
@@ -61,7 +61,7 @@ export default class LoginComponent {
             }
 
             labelRegister.textContent = "";
-            this.onLogin(username, password);
+            this.onRegister(username, password);
         }
     }
 

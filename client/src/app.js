@@ -7,7 +7,8 @@ import { PlayfieldComponent } from "./playfield/playfield.component";
 import { Router } from "./router";
 import { StartPage } from "./start-page/component/start-page.component";
 import { StartPageNonogramSelector } from "./start-page/internal/start-page-nonogram-selector";
-import LoginComponent from "./auth/login-component/login.component"
+import LoginComponent from "./auth/components/login-component/login.component"
+import AuthService from "./auth/services/auth-service"
 import * as storageMigration from "./storage-migration"
 
 
@@ -33,9 +34,17 @@ let menu = new Menu();
 let header = new Header(menu);
 let catalog = new Catalog(catalogAccess);
 let startPage = new StartPage(startPageNonogramSelector, catalogAccess);
+let authService = new AuthService(async () => {}, async () => {}, async () => {});
 let loginPage = new LoginComponent(
     async (username, password) => {},
-    async (username, password) => {}
+    async (username, password) => {
+        const result = await authService.register(username, password);
+        switch (result) {
+            case "ok": alert("User created"); break;
+            case "user_exists": alert("User already exists."); break;
+            case "error": alert("An error occured."); break;
+        }
+    }
 );
 let playfield = /** @type {PlayfieldComponent | undefined} */ (undefined);
 

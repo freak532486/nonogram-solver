@@ -11,9 +11,12 @@
     grid-template-columns: auto auto;
     gap: 10px;
 
+    max-width: 350px;
+    border: 1px solid var(--border-color);
+
     align-items: center;
 
-    padding: 5px;
+    padding: 10px;
 }
 
 #login-root .login-container .left {
