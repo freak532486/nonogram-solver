@@ -1,0 +1,28 @@
+{
+  "name": "nonogram",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "esbuild --bundle src/main.js --outfile=dist/bundle.js  --platform=browser  --format=esm  --sourcemap  --loader:.html=text  --loader:.css=css  --external:/images/*  --external:/nonograms/joined.json --watch && cp -r resources/* dist/",
+    "build": "esbuild --bundle src/main.js --outfile=dist/bundle.js  --platform=browser  --format=esm  --sourcemap  --loader:.html=text  --loader:.css=css  --external:/images/*  --external:/nonograms/joined.json && cp -r resources/* dist/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freak532486/nonogram-js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/freak532486/nonogram-js/issues"
+  },
+  "homepage": "https://github.com/freak532486/nonogram-js#readme",
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "esbuild": "^0.27.2",
+    "nonojs-common": "file:../common",
+    "typebox": "^1.0.79"
+  }
+}

@@ -1,25 +1,19 @@
 {
-  "name": "nonogram",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "dev": "esbuild --bundle src/main.js --outfile=dist/bundle.js  --platform=browser  --format=esm  --sourcemap  --loader:.html=text  --loader:.css=css  --external:/images/*  --external:/nonograms/joined.json --watch && cp -r resources/* dist/",
-    "build": "esbuild --bundle src/main.js --outfile=dist/bundle.js  --platform=browser  --format=esm  --sourcemap  --loader:.html=text  --loader:.css=css  --external:/images/*  --external:/nonograms/joined.json && cp -r resources/* dist/"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/freak532486/nonogram-js.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/freak532486/nonogram-js/issues"
-  },
-  "homepage": "https://github.com/freak532486/nonogram-js#readme",
-  "dependencies": {
-    "esbuild": "^0.27.2"
-  }
+    "name": "nonojs",
+    "private": "true",
+    "workspaces": [
+        "common",
+        "client",
+        "server"
+    ],
+    "scripts": {
+        "clean": "npm run clean:remove && npm run build",
+        "clean:remove": "rm -r client/dist/ && rm -r server/dist/ && rm -r common/dist/",
+        "build": "npm run build --ws",
+        "start": "npm run start -w server",
+        "dev": "concurrently \"npm run dev --workspace common\" \"npm run dev --workspace client\" \"npm run dev --workspace server\""
+    },
+    "dependencies": {
+        "concurrently": "^9.2.1"
+    }
 }

@@ -1,0 +1,25 @@
+.box {
+    display: grid;
+    grid-template-rows: auto 1fr;
+
+    box-shadow: 0px 2px 4px #00000040;
+}
+
+.box-header {
+    border: 1px solid var(--border-color);
+    border-radius: 5px 5px 0px 0px;
+    padding: 5px;
+
+    display: flex;
+    justify-content: center;
+
+    font-weight: bold;
+}
+
+.box-content {
+    border: 1px solid var(--border-color);
+    border-top: none;
+    background-color: var(--bg2);
+    padding: 10px;
+    box-sizing: border-box;
+}

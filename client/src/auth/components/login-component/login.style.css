@@ -1,0 +1,57 @@
+#login-root {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    padding: 5px;
+}
+
+#login-root .login-container {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 10px;
+
+    max-width: 350px;
+    border: 1px solid var(--border-color);
+
+    align-items: center;
+
+    padding: 10px;
+}
+
+#login-root .login-container .left {
+    justify-self: left;
+}
+
+#login-root .login-container .right {
+    justify-self: right;
+}
+
+#login-root .fullwidth {
+    grid-column: 1 / 3;
+}
+
+#login-root .label {
+    color: red;
+}
+
+#login-box .box-header {
+    background: linear-gradient(#ffffff00 -100%, #00eeff30 100%);
+}
+
+#register-box .box-header {
+    background: linear-gradient(#ffffff00 -100%, #fbff0030 100%);
+}
+
+#login-root .button-label-combo {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px;
+
+    justify-items: end;
+    align-items: center;
+}
+
+#login-root .button-label-combo button {
+    min-width: 120px;
+}

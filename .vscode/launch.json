@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Debug Client",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://127.0.0.1:3000",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "name": "Debug Server",
+            "request": "attach",
+            "type": "node",
+            "port": 9320,
+            "restart": true,
+            "skipFiles": ["<node_internals>/**"]
+        }
+    ]
+}
